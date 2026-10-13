@@ -1,0 +1,2 @@
+# pagesGo
+cloudflare pages go

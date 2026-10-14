@@ -1,1 +1,5 @@
-/*  https://v-dey.com/player/player.html?id=:splat  301
+# Shortlink ditangani oleh Cloudflare Pages Functions.
+# File functions/[[path]].js menangani redirect dan UTM tracking.
+#
+# Rule redirect lama telah dipindahkan ke Pages Functions:
+# /* https://v-dey.com/player/player.html?id=:splat 301

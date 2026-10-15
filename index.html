@@ -8,65 +8,146 @@
   <meta name="robots" content="noindex, nofollow">
 
   <style>
-    body {
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
       margin: 0;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0f0f0f;
-      color: #eee;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      background: #0a0a0a;
+      background-image:
+        radial-gradient(circle at 50% 40%, rgba(90, 120, 255, 0.12), transparent 60%),
+        radial-gradient(circle at 50% 100%, rgba(180, 90, 255, 0.08), transparent 55%);
+      color: #eaeaea;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
     .loader {
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+      animation: fadeIn 0.35s ease-out both;
     }
 
+    /* Spinner: conic-gradient ring, GPU-friendly */
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba(255,255,255,0.2);
-      border-top-color: #fff;
+      width: 54px;
+      height: 54px;
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
+      background:
+        conic-gradient(from 0deg, rgba(255,255,255,0) 0%, #6ea8ff 35%, #b78bff 65%, rgba(255,255,255,0) 100%);
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+              mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+      animation: spin 0.9s linear infinite;
+      will-change: transform;
+    }
+
+    /* Text */
+    .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      letter-spacing: 0.03em;
+      color: rgba(234, 234, 234, 0.75);
+    }
+
+    .label .dots span {
+      animation: blink 1.4s infinite both;
+    }
+    .label .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .label .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    .error {
+      text-align: center;
+      padding: 20px 24px;
+      border-radius: 14px;
+      background: rgba(255, 90, 90, 0.08);
+      border: 1px solid rgba(255, 90, 90, 0.2);
+      color: #ff9c9c;
+      font-size: 14px;
+      animation: fadeIn 0.35s ease-out both;
+    }
+
+    .error strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 6px;
+      color: #ffb1b1;
     }
 
     @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Hemat resource di perangkat low-end */
+    @media (prefers-reduced-motion: reduce) {
+      .spinner { animation-duration: 1.6s; }
+      .label .dots span { animation: none; opacity: 0.8; }
     }
   </style>
 </head>
 <body>
-  <div class="loader">
-    <div class="spinner"></div>
-    <p>Mengalihkan...</p>
+  <div class="loader" id="loader">
+    <div class="spinner" aria-hidden="true"></div>
+    <div class="label">
+      Mengalihkan<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+    </div>
   </div>
 
   <script>
     (function () {
-      // Ambil path dari URL, contoh: /abc123 -> "abc123"
-      var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+      var id = null;
 
-      // Jika tidak ada ID, tampilkan pesan error.
-      if (!path) {
+      // 1) Cek query parameter ?id=xxxx
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var queryId = params.get('id');
+        if (queryId && queryId.trim() !== '') {
+          id = queryId.trim();
+        }
+      } catch (e) { /* URLSearchParams tidak didukung: abaikan */ }
+
+      // 2) Fallback ke path: /xxxx
+      if (!id) {
+        var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+        if (path) {
+          id = path.split('/')[0];
+        }
+      }
+
+      // Tidak ada ID → tampilkan pesan error
+      if (!id) {
         document.body.innerHTML =
-          '<div class="loader"><p>❌ ID tidak ditemukan di URL.</p></div>';
+          '<div class="error"><strong>ID tidak ditemukan</strong>Pastikan URL berisi ID, contoh:<br>videil.com/?id=fa0zJuGW1</div>';
         return;
       }
 
-      // Ambil hanya segmen pertama jika terdapat sub-path.
-      var id = path.split('/')[0];
-
-      // Encode ID untuk keamanan.
+      // Bangun URL target
       var targetUrl =
         'https://v-dey.com/player/player.html?id=' +
         encodeURIComponent(id);
 
-      // Redirect tanpa menambahkan entri history baru.
+      // Redirect secepat mungkin
       window.location.replace(targetUrl);
     })();
   </script>

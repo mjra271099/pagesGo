@@ -4,13 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Redirecting...</title>
+  <title>Memuat video...</title>
   <meta name="robots" content="noindex, nofollow">
 
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { box-sizing: border-box; }
 
     html, body {
       margin: 0;
@@ -34,24 +32,52 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 22px;
-      animation: fadeIn 0.35s ease-out both;
+      gap: 20px;
+      animation: fadeIn 0.3s ease-out both;
     }
 
-    /* Spinner: conic-gradient ring, GPU-friendly */
-    .spinner {
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
-      background:
-        conic-gradient(from 0deg, rgba(255,255,255,0) 0%, #6ea8ff 35%, #b78bff 65%, rgba(255,255,255,0) 100%);
-      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
-              mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
-      animation: spin 0.9s linear infinite;
-      will-change: transform;
+    /* Ring progress: mengisi penuh dalam 3 detik */
+    .ring {
+      position: relative;
+      width: 72px;
+      height: 72px;
     }
 
-    /* Text */
+    .ring svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      display: block;
+    }
+
+    .ring .track {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 4;
+    }
+
+    .ring .bar {
+      fill: none;
+      stroke: #6ea8ff;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 201;   /* 2πr, r = 32 */
+      stroke-dashoffset: 201;
+      animation: fill 3s linear forwards;
+    }
+
+    /* Angka countdown di tengah */
+    .count {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: #eaeaea;
+      font-variant-numeric: tabular-nums;
+    }
+
     .label {
       display: inline-flex;
       align-items: center;
@@ -61,9 +87,7 @@
       color: rgba(234, 234, 234, 0.75);
     }
 
-    .label .dots span {
-      animation: blink 1.4s infinite both;
-    }
+    .label .dots span { animation: blink 1.4s infinite both; }
     .label .dots span:nth-child(2) { animation-delay: 0.2s; }
     .label .dots span:nth-child(3) { animation-delay: 0.4s; }
 
@@ -75,7 +99,8 @@
       border: 1px solid rgba(255, 90, 90, 0.2);
       color: #ff9c9c;
       font-size: 14px;
-      animation: fadeIn 0.35s ease-out both;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease-out both;
     }
 
     .error strong {
@@ -85,8 +110,8 @@
       color: #ffb1b1;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    @keyframes fill {
+      to { stroke-dashoffset: 0; }
     }
 
     @keyframes blink {
@@ -99,56 +124,66 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Hemat resource di perangkat low-end */
     @media (prefers-reduced-motion: reduce) {
-      .spinner { animation-duration: 1.6s; }
       .label .dots span { animation: none; opacity: 0.8; }
     }
   </style>
 </head>
 <body>
   <div class="loader" id="loader">
-    <div class="spinner" aria-hidden="true"></div>
+    <div class="ring">
+      <svg viewBox="0 0 72 72" aria-hidden="true">
+        <circle class="track" cx="36" cy="36" r="32"></circle>
+        <circle class="bar" cx="36" cy="36" r="32"></circle>
+      </svg>
+      <div class="count" id="count">3</div>
+    </div>
     <div class="label">
-      Mengalihkan<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+      Menyiapkan video<span class="dots"><span>.</span><span>.</span><span>.</span></span>
     </div>
   </div>
 
   <script>
     (function () {
+      var DELAY = 3000; // 3 detik
       var id = null;
 
-      // 1) Cek query parameter ?id=xxxx
+      // 1) Query parameter ?id=xxxx
       try {
         var params = new URLSearchParams(window.location.search);
         var queryId = params.get('id');
-        if (queryId && queryId.trim() !== '') {
-          id = queryId.trim();
-        }
-      } catch (e) { /* URLSearchParams tidak didukung: abaikan */ }
+        if (queryId && queryId.trim() !== '') id = queryId.trim();
+      } catch (e) { /* diabaikan */ }
 
       // 2) Fallback ke path: /xxxx
       if (!id) {
         var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
-        if (path) {
-          id = path.split('/')[0];
-        }
+        if (path) id = path.split('/')[0];
       }
 
-      // Tidak ada ID → tampilkan pesan error
+      // Tidak ada ID → error
       if (!id) {
         document.body.innerHTML =
           '<div class="error"><strong>ID tidak ditemukan</strong>Pastikan URL berisi ID, contoh:<br>videil.com/?id=fa0zJuGW1</div>';
         return;
       }
 
-      // Bangun URL target
-      var targetUrl =
-        'https://v-dey.com/player/player.html?id=' +
-        encodeURIComponent(id);
+      // URL target
+      var targetUrl = 'https://v-dey.com/player/player.html?id=' + encodeURIComponent(id);
 
-      // Redirect secepat mungkin
-      window.location.replace(targetUrl);
+      // Countdown angka 3 → 2 → 1
+      var countEl = document.getElementById('count');
+      var n = 3;
+      var tick = setInterval(function () {
+        n--;
+        if (n > 0) countEl.textContent = n;
+      }, 1000);
+
+      // Redirect setelah 3 detik
+      setTimeout(function () {
+        clearInterval(tick);
+        window.location.replace(targetUrl);
+      }, DELAY);
     })();
   </script>
 </body>

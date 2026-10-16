@@ -145,7 +145,7 @@
 
   <script>
     (function () {
-      var DELAY = 3000; // 3 detik
+      var DELAY = 2; // 2 detik
       var id = null;
 
       // 1) Query parameter ?id=xxxx
@@ -171,15 +171,15 @@
       // URL target
       var targetUrl = 'https://v-dey.com/player/player.html?id=' + encodeURIComponent(id);
 
-      // Countdown angka 3 → 2 → 1
+      // Countdown angka 2 → 1
       var countEl = document.getElementById('count');
-      var n = 3;
+      var n = 2;
       var tick = setInterval(function () {
         n--;
         if (n > 0) countEl.textContent = n;
       }, 1000);
 
-      // Redirect setelah 3 detik
+      // Redirect setelah 2 detik
       setTimeout(function () {
         clearInterval(tick);
         window.location.replace(targetUrl);

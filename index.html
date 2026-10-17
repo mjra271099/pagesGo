@@ -105,6 +105,36 @@
       max-width: 320px; margin-left: auto; margin-right: auto;
     }
 
+    /* ---------- Petunjuk arah bawah (LEBIH TEGAS) ---------- */
+    .arrow-down {
+      margin: 10px auto 4px;
+      width: 38px; height: 38px;
+      color: #7eb3ff;
+      animation: bounceDown 1.35s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+      pointer-events: none;
+      user-select: none;
+      display: flex; align-items: center; justify-content: center;
+      filter: drop-shadow(0 0 6px rgba(110,168,255,0.7))
+              drop-shadow(0 0 14px rgba(110,168,255,0.35));
+    }
+    .arrow-down svg {
+      width: 34px; height: 34px;
+      display: block;
+      stroke: currentColor;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+    .arrow-down svg polyline.top  { opacity: 0.4; }
+    .arrow-down svg polyline.bot  { opacity: 1; }
+
+    @keyframes bounceDown {
+      0%   { transform: translateY(-3px); opacity: 0.65; }
+      50%  { transform: translateY(7px);  opacity: 1; }
+      100% { transform: translateY(-3px); opacity: 0.65; }
+    }
+
     /* ---------- Manual mode (app-specific guide) ---------- */
     .manual-guide {
       display: none;
@@ -126,6 +156,7 @@
       margin: 0 0 8px;
       font-size: 14px; font-weight: 700; color: #a8c9ff;
       display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap;
     }
     .guide-title::before {
       content: '⚠';
@@ -135,6 +166,7 @@
       background: rgba(255,190,90,0.15);
       color: #ffce7a;
       font-size: 12px;
+      flex-shrink: 0;
     }
     .guide-app {
       display: inline-block;
@@ -206,6 +238,7 @@
       background: none; border: none; padding: 4px;
       cursor: pointer; font-family: inherit;
       -webkit-tap-highlight-color: transparent;
+      width: 100%;
     }
     .try-anyway:hover { color: rgba(234,234,234,0.6); }
 
@@ -243,8 +276,15 @@
       from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+
     @media (prefers-reduced-motion: reduce) {
       .external-browser a { transition: none; }
+      .arrow-down {
+        animation: none;
+        opacity: 1;
+        filter: drop-shadow(0 0 6px rgba(110,168,255,0.7));
+      }
+      .arrow-down svg polyline.top { opacity: 0.55; }
     }
   </style>
 </head>
@@ -268,7 +308,16 @@
     <!-- Mode normal: tombol Buka di Browser -->
     <div class="external-browser" id="externalBrowserBox">
       <a href="#" id="openExternalBrowser">↗ Open in Browser</a>
-      <p id="hintText">Tap the button above to open the video in Chrome or your external browser.</p>
+      <p id="hintText">Tap the button above to open the video in Chrome or your external browser. It will not open automatically.</p>
+
+      <!-- Petunjuk arah bawah (double chevron, tegas) -->
+      <div class="arrow-down" id="arrowDown" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <polyline class="top" points="6 6 12 12 18 6"></polyline>
+          <polyline class="bot" points="6 13 12 19 18 13"></polyline>
+        </svg>
+      </div>
+
       <div class="copy-hint" id="copyHint"></div>
     </div>
 
@@ -363,11 +412,11 @@
       /* ================= State ================= */
       var errorMode = false;
       var targetUrl = '';
-      var manualMode = false;   // true jika perlu panduan manual
+      var manualMode = false;
       var detectedApp = 'other';
       var platform = 'other';
       var isInApp = false;
-      var escapeScheme = 'open'; // 'instagram' | 'safari' | 'intent' | 'open'
+      var escapeScheme = 'open';
 
       /* ================= DOM ================= */
       var loaderEl = document.getElementById('loader');
@@ -429,7 +478,6 @@
           buttonEl.textContent = T.btn;
           hintEl.textContent = T.hint;
 
-          // Sembunyikan copy hint jika mode normal
           copyHintEl.classList.remove('visible');
           copyHintEl.textContent = '';
         }
@@ -507,7 +555,6 @@
       if (isAndroid) platform = 'android';
       else if (isIOS) platform = 'ios';
 
-      // Deteksi app sumber
       if (/Telegram/i.test(ua) || (isAndroid && typeof window.TelegramWebview !== 'undefined')) {
         detectedApp = 'telegram';
       } else if (/Instagram/i.test(ua)) {
@@ -537,8 +584,6 @@
       isInApp = (detectedApp !== 'browser');
 
       /* ================= Strategi ================= */
-
-      // App yang memblokir SEMUA redirect otomatis → wajib panduan manual
       var HARD_BLOCK_IOS = ['twitter', 'tiktok', 'whatsapp', 'line', 'wechat', 'snapchat'];
       var HARD_BLOCK_ANY = ['telegram'];
 
@@ -547,24 +592,22 @@
       } else if (platform === 'ios' && HARD_BLOCK_IOS.indexOf(detectedApp) !== -1) {
         manualMode = true;
       } else if (detectedApp === 'wechat' || detectedApp === 'line' || detectedApp === 'snapchat') {
-        manualMode = true; // sangat agresif di kedua platform
+        manualMode = true;
       } else {
         manualMode = false;
       }
 
-      // Tentukan scheme escape untuk mode normal
       if (isAndroid) {
         escapeScheme = 'intent';
       } else if (isIOS && detectedApp === 'instagram') {
-        escapeScheme = 'instagram'; // instagram://extbrowser/
+        escapeScheme = 'instagram';
       } else if (isIOS) {
-        escapeScheme = 'safari'; // x-safari-https://
+        escapeScheme = 'safari';
       } else {
         escapeScheme = 'open';
       }
 
       /* ================= Escape handlers ================= */
-
       function escapeInstagramIOS() {
         var encoded = encodeURIComponent(targetUrl);
         window.location.href = 'instagram://extbrowser/?url=' + encoded;
@@ -590,7 +633,6 @@
           'action=android.intent.action.VIEW;' +
           'category=android.intent.category.BROWSABLE;end';
 
-        // Coba Chrome dulu via iframe
         try {
           var iframe = document.createElement('iframe');
           iframe.style.display = 'none';
@@ -626,17 +668,13 @@
       buttonEl.addEventListener('click', function (e) {
         e.preventDefault();
 
-        // Non-inapp: biarkan default target=_blank bekerja
         if (!isInApp) {
-          // tetap coba window.open sebagai fallback eksplisit
           escapeOpen();
           return;
         }
 
-        // In-app tapi tidak "hard block" → coba escape
         doEscape();
 
-        // Fallback: jika setelah 1.8 detik masih di sini, tampilkan URL
         setTimeout(function () {
           copyHintEl.textContent = T.copyFallback + targetUrl;
           copyHintEl.classList.add('visible');

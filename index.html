@@ -105,7 +105,7 @@
       max-width: 320px; margin-left: auto; margin-right: auto;
     }
 
-    /* ---------- Petunjuk arah bawah (LEBIH TEGAS) ---------- */
+    /* ---------- Petunjuk arah bawah ---------- */
     .arrow-down {
       margin: 10px auto 4px;
       width: 38px; height: 38px;
@@ -135,7 +135,7 @@
       100% { transform: translateY(-3px); opacity: 0.65; }
     }
 
-    /* ---------- Manual mode (app-specific guide) ---------- */
+    /* ---------- Manual mode ---------- */
     .manual-guide {
       display: none;
       width: 100%;
@@ -242,7 +242,7 @@
     }
     .try-anyway:hover { color: rgba(234,234,234,0.6); }
 
-    /* ---------- Copy hint (fallback normal mode) ---------- */
+    /* ---------- Copy hint ---------- */
     .copy-hint {
       display: none;
       margin: 10px auto 0;
@@ -310,7 +310,6 @@
       <a href="#" id="openExternalBrowser">↗ Open in Browser</a>
       <p id="hintText">Tap the button above to open the video in Chrome or your external browser. It will not open automatically.</p>
 
-      <!-- Petunjuk arah bawah (double chevron, tegas) -->
       <div class="arrow-down" id="arrowDown" aria-hidden="true">
         <svg viewBox="0 0 24 24">
           <polyline class="top" points="6 6 12 12 18 6"></polyline>
@@ -321,7 +320,7 @@
       <div class="copy-hint" id="copyHint"></div>
     </div>
 
-    <!-- Mode manual: panduan khusus untuk app yang memblokir -->
+    <!-- Mode manual -->
     <div class="manual-guide" id="manualGuide">
       <div class="guide-card">
         <p class="guide-title" id="guideTitle">Open in External Browser</p>
@@ -473,7 +472,8 @@
           copyBtnEl.classList.remove('copied');
           tryAnywayEl.textContent = T.tryAnyway;
         } else {
-          externalBox.style.display = '';
+          // Tombol hanya relevan bila halaman dibuka di browser internal aplikasi.
+          externalBox.style.display = isInApp ? '' : 'none';
           manualGuide.classList.remove('visible');
           buttonEl.textContent = T.btn;
           hintEl.textContent = T.hint;
@@ -668,11 +668,14 @@
       buttonEl.addEventListener('click', function (e) {
         e.preventDefault();
 
+        // Jika halaman sudah ada di browser eksternal, langsung navigasi
+        // di tab yang sama (tanpa buka tab baru).
         if (!isInApp) {
-          escapeOpen();
+          window.location.replace(targetUrl);
           return;
         }
 
+        // Jika masih di browser internal aplikasi, coba keluar ke browser eksternal.
         doEscape();
 
         setTimeout(function () {
@@ -700,6 +703,12 @@
 
       /* ================= Render awal ================= */
       applyI18n();
+
+      // Sudah di browser eksternal? Langsung menuju player.
+      // Tanpa ini, halaman hanya menampilkan loader kosong karena tombol disembunyikan.
+      if (!isInApp) {
+        window.location.replace(targetUrl);
+      }
     })();
   </script>
 </body>

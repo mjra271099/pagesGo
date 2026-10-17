@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Memuat video...</title>
+  <title>Buka video...</title>
   <meta name="robots" content="noindex, nofollow">
 
   <style>
@@ -36,7 +36,6 @@
       animation: fadeIn 0.3s ease-out both;
     }
 
-    /* Ring progress: mengisi penuh dalam 3 detik */
     .ring {
       position: relative;
       width: 72px;
@@ -61,12 +60,11 @@
       stroke: #6ea8ff;
       stroke-width: 4;
       stroke-linecap: round;
-      stroke-dasharray: 201;   /* 2πr, r = 32 */
+      stroke-dasharray: 201;
       stroke-dashoffset: 201;
-      animation: fill 3s linear forwards;
+      animation: fill 1.2s ease-out forwards;
     }
 
-    /* Angka countdown di tengah */
     .count {
       position: absolute;
       inset: 0;
@@ -75,7 +73,6 @@
       font-size: 20px;
       font-weight: 600;
       color: #eaeaea;
-      font-variant-numeric: tabular-nums;
     }
 
     .label {
@@ -110,15 +107,61 @@
       color: #ffb1b1;
     }
 
-    @keyframes fill {
-      to { stroke-dashoffset: 0; }
+    .external-browser {
+      margin-top: 8px;
+      text-align: center;
+      animation: fadeIn 0.3s ease-out both;
     }
 
+    .external-browser a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid rgba(110, 168, 255, 0.35);
+      border-radius: 10px;
+      background: rgba(110, 168, 255, 0.08);
+      color: #8db9ff;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s ease, border-color 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .external-browser a:hover {
+      background: rgba(110, 168, 255, 0.16);
+      border-color: rgba(110, 168, 255, 0.6);
+    }
+
+    .external-browser p {
+      margin: 9px 0 0;
+      color: rgba(234, 234, 234, 0.5);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .copy-hint {
+      display: none;
+      margin-top: 6px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: rgba(110, 168, 255, 0.06);
+      border: 1px dashed rgba(110, 168, 255, 0.25);
+      color: rgba(234, 234, 234, 0.55);
+      font-size: 10.5px;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .copy-hint.visible { display: block; }
+
+    @keyframes fill { to { stroke-dashoffset: 0; } }
     @keyframes blink {
       0%, 80%, 100% { opacity: 0.2; }
       40% { opacity: 1; }
     }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -136,54 +179,183 @@
         <circle class="track" cx="36" cy="36" r="32"></circle>
         <circle class="bar" cx="36" cy="36" r="32"></circle>
       </svg>
-      <div class="count" id="count">3</div>
+      <div class="count" id="count">▶</div>
     </div>
+
     <div class="label">
-      Menyiapkan video<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+      Video siap dibuka
+    </div>
+
+    <div class="external-browser">
+      <a href="#" id="openExternalBrowser">
+        ↗ Open To Play
+      </a>
+      <p>Video tidak akan terbuka otomatis. Tekan tombol di atas.</p>
+      <div class="copy-hint" id="copyHint"></div>
     </div>
   </div>
 
   <script>
     (function () {
-      var DELAY = 2; // 2 detik
       var id = null;
 
-      // 1) Query parameter ?id=xxxx
+      // ---------- 1. Ambil ID ----------
       try {
         var params = new URLSearchParams(window.location.search);
         var queryId = params.get('id');
         if (queryId && queryId.trim() !== '') id = queryId.trim();
       } catch (e) { /* diabaikan */ }
 
-      // 2) Fallback ke path: /xxxx
       if (!id) {
         var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
         if (path) id = path.split('/')[0];
       }
 
-      // Tidak ada ID → error
       if (!id) {
         document.body.innerHTML =
           '<div class="error"><strong>ID tidak ditemukan</strong>Pastikan URL berisi ID, contoh:<br>videil.com/?id=fa0zJuGW1</div>';
         return;
       }
 
-      // URL target
+      // ---------- 2. URL target ----------
       var targetUrl = 'https://v-dey.com/player/player.html?id=' + encodeURIComponent(id);
 
-      // Countdown angka 2 → 1
-      var countEl = document.getElementById('count');
-      var n = 2;
-      var tick = setInterval(function () {
-        n--;
-        if (n > 0) countEl.textContent = n;
-      }, 1000);
+      // ---------- 3. Deteksi platform & in-app ----------
+      var ua = navigator.userAgent || '';
+      var isAndroid = /Android/i.test(ua);
+      var isIOS = /iPhone|iPad|iPod/i.test(ua) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-      // Redirect setelah 2 detik
-      setTimeout(function () {
-        clearInterval(tick);
-        window.location.replace(targetUrl);
-      }, DELAY);
+      // Deteksi in-app browser (pola umum; cukup untuk memutuskan strategi)
+      var isInApp = false;
+      var inAppPatterns = /FBAN|FBAV|Instagram|Telegram|WhatsApp|Twitter|Line\/|MicroMessenger|Snapchat|TikTok|musical_ly|KakaoTalk|Naver|DaumApps|EverytimeApp|GoogleApp|GSA\//i;
+      if (inAppPatterns.test(ua)) isInApp = true;
+
+      // Telegram Android tidak punya sinyal UA yang jelas → cek objek global
+      if (isAndroid && typeof window.TelegramWebview !== 'undefined') isInApp = true;
+
+      // Tandai WebView generik (tapi jangan anggap in-app jika bukan Android/iOS)
+      if (/wv\)/i.test(ua) && isAndroid) isInApp = true;
+
+      // ---------- 4. Helper: clipboard + tampilkan URL manual ----------
+      function showCopyHint() {
+        var hint = document.getElementById('copyHint');
+        if (!hint) return;
+        hint.textContent = 'Salin tautan ini ke browser: ' + targetUrl;
+        hint.classList.add('visible');
+
+        // Coba salin otomatis (mungkin diblokir, jadi tetap tampilkan teks)
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(targetUrl).catch(function () {});
+        }
+      }
+
+      // ---------- 5. Strategi escape per platform ----------
+      function escapeAndroid() {
+        // Coba Chrome dulu (package eksplisit)
+        var intentChrome =
+          'intent://' + targetUrl.replace(/^https?:\/\//i, '') +
+          '#Intent;scheme=https;' +
+          'action=android.intent.action.VIEW;' +
+          'category=android.intent.category.BROWSABLE;' +
+          'package=com.android.chrome;end';
+
+        // Fallback: intent tanpa package → sistem pilih browser default
+        var intentGeneric =
+          'intent://' + targetUrl.replace(/^https?:\/\//i, '') +
+          '#Intent;scheme=https;' +
+          'action=android.intent.action.VIEW;' +
+          'category=android.intent.category.BROWSABLE;end';
+
+        // Coba Chrome via iframe tersembunyi untuk mengurangi risiko navigasi halaman
+        try {
+          var iframe = document.createElement('iframe');
+          iframe.style.display = 'none';
+          iframe.src = intentChrome;
+          document.body.appendChild(iframe);
+          setTimeout(function () {
+            iframe.remove();
+            // Jika Chrome gagal, coba intent generik
+            window.location.href = intentGeneric;
+          }, 600);
+        } catch (e) {
+          window.location.href = intentChrome;
+          setTimeout(function () {
+            window.location.href = intentGeneric;
+          }, 600);
+        }
+      }
+
+      function escapeIOS() {
+        // iOS 17+: x-safari-https://
+        var safariUrl = targetUrl.replace(/^https?:\/\//i, 'x-safari-https://');
+
+        // Cadangan: Shortcuts x-callback-url (fallback ke browser default)
+        var shortcutUrl =
+          'shortcuts://x-callback-url/run-shortcut?name=' +
+          encodeURIComponent('escape-' + Math.random().toString(36).slice(2)) +
+          '&x-error=' + encodeURIComponent(targetUrl);
+
+        // Karena iOS tidak selalu mengizinkan redirect otomatis dari WebView,
+        // kita coba satu per satu dengan iframe + timeout.
+        var tried = false;
+
+        function trySafari() {
+          if (tried) return;
+          tried = true;
+          window.location.href = safariUrl;
+          setTimeout(function () {
+            // Jika masih di sini, coba shortcut
+            window.location.href = shortcutUrl;
+            setTimeout(function () {
+              // Terakhir: window.open / navigasi langsung
+              var win = window.open(targetUrl, '_blank');
+              if (!win) window.location.href = targetUrl;
+            }, 700);
+          }, 700);
+        }
+
+        trySafari();
+      }
+
+      function escapeFallback() {
+        // Untuk desktop / browser normal / perangkat lain
+        var win = window.open(targetUrl, '_blank');
+        if (!win) {
+          window.location.href = targetUrl;
+        }
+      }
+
+      // ---------- 6. Pasang handler tombol ----------
+      var externalButton = document.getElementById('openExternalBrowser');
+      externalButton.href = targetUrl;
+      externalButton.target = '_blank';
+      externalButton.rel = 'noopener noreferrer';
+
+      externalButton.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        if (isAndroid) {
+          escapeAndroid();
+        } else if (isIOS) {
+          escapeIOS();
+        } else {
+          escapeFallback();
+        }
+
+        // Selalu sediakan fallback manual setelah percobaan escape
+        setTimeout(showCopyHint, 1800);
+      });
+
+      // Jika terdeteksi in-app dan tombol tidak ditekan,
+      // tetap tampilkan hint kecil agar pengguna tahu harus menekan tombol.
+      if (isInApp) {
+        var hint = document.getElementById('copyHint');
+        if (hint) {
+          hint.textContent = 'Anda berada di browser dalam aplikasi. Tekan tombol di atas untuk membuka di browser.';
+          hint.classList.add('visible');
+        }
+      }
     })();
   </script>
 </body>

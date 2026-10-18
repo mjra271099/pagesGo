@@ -13,7 +13,7 @@
 <meta name="twitter:description" content="Tap to open the video in your browser.">
 <link rel="preconnect" href="https://v-dey.com" crossorigin>
 
-<!-- ⚡ EARLY REDIRECT — jalankan SEBELUM CSS di-parse -->
+<!-- ⚡ EARLY REDIRECT -->
 <script>
 (function () {
   try {
@@ -22,7 +22,6 @@
       /Telegram|TwitterAndroid|TwitterForiPhone|\bX-App\b|\bXAuth\d+|Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|BytedanceWebview|WhatsApp|Line\/|MicroMessenger|Snapchat|KakaoTalk|Naver|DaumApps|EverytimeApp|GoogleApp|GSA\//i.test(ua) ||
       (/Android/i.test(ua) && /;\s*wv\)/i.test(ua));
     if (inApp) return;
-
     var id = null;
     try {
       var q = new URLSearchParams(location.search).get('id');
@@ -61,11 +60,16 @@ button{-webkit-tap-highlight-color:transparent}
 .loader{display:flex;flex-direction:column;align-items:center;gap:20px;padding:24px;width:100%;
   max-width:440px;text-align:center;animation:fadeIn .3s ease-out both}
 .ring{position:relative;width:72px;height:72px;flex-shrink:0}
-.ring svg{width:100%;height:100%;transform:rotate(-90deg);display:block}
+/* ✅ hanya SVG ring langsung yang di-rotate, bukan play icon di dalam .count */
+.ring > svg{width:100%;height:100%;transform:rotate(-90deg);display:block}
 .ring .track{fill:none;stroke:rgba(255,255,255,.08);stroke-width:4}
 .ring .bar{fill:none;stroke:#6ea8ff;stroke-width:4;stroke-linecap:round;
   stroke-dasharray:201;stroke-dashoffset:201;animation:fill 1.2s ease-out forwards}
-.count{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;font-weight:600;color:#eaeaea}
+.count{position:absolute;inset:0;display:grid;place-items:center;color:#eaeaea}
+/* ✅ play icon pakai SVG supaya geometrinya presisi center */
+.count .play-icon{width:26px;height:26px;display:block;fill:currentColor;
+  margin-left:2px; /* optical center: triangle condong ke kanan sedikit */
+  filter:drop-shadow(0 0 4px rgba(110,168,255,.35))}
 .label{font-size:14px;letter-spacing:.03em;line-height:1.6;color:rgba(234,234,234,.85)}
 
 .external-browser{margin-top:4px;text-align:center;width:100%}
@@ -89,21 +93,25 @@ button{-webkit-tap-highlight-color:transparent}
 
 .manual-guide{display:none;width:100%;animation:fadeIn .3s ease-out both}
 .manual-guide.visible{display:block}
+/* ✅ guide card di-center semua */
 .guide-card{padding:18px;border-radius:14px;background:rgba(110,168,255,.06);
-  border:1px solid rgba(110,168,255,.25);text-align:left;max-width:380px;margin:0 auto}
+  border:1px solid rgba(110,168,255,.25);text-align:center;max-width:380px;margin:0 auto}
+/* ✅ judul guide di-center */
 .guide-title{margin:0 0 12px;font-size:14px;font-weight:700;color:#a8c9ff;
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;line-height:1.6}
+  display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;line-height:1.6}
 .guide-title::before{content:"!";display:inline-grid;place-items:center;width:22px;height:22px;
   border-radius:50%;background:rgba(255,190,90,.15);color:#ffce7a;font-size:12px;flex-shrink:0}
 .guide-app{display:inline-block;padding:2px 7px;border-radius:5px;
   background:rgba(110,168,255,.18);color:#a8c9ff;font-weight:600}
+/* ✅ steps inherit text-align:center */
 .guide-steps{margin:0 0 16px;font-size:12.5px;line-height:1.8;color:rgba(234,234,234,.8)}
 .guide-steps strong{color:#c5d9ff}
 .copy-row{display:flex;gap:8px;align-items:stretch;margin-top:4px}
 .copy-url{flex:1;min-width:0;width:0;padding:10px;border-radius:8px;
   border:1px solid rgba(110,168,255,.2);background:rgba(0,0,0,.35);
   color:rgba(234,234,234,.85);font-size:11px;font-family:ui-monospace,"SF Mono",Menlo,monospace;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-appearance:none}
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-appearance:none;
+  text-align:left} /* URL tetap left-align supaya awal link terlihat */
 .copy-url:focus{outline:2px solid rgba(110,168,255,.5);outline-offset:1px}
 .copy-btn{flex-shrink:0;padding:10px 13px;border-radius:8px;
   border:1px solid rgba(110,168,255,.4);background:rgba(110,168,255,.15);
@@ -117,9 +125,10 @@ button{-webkit-tap-highlight-color:transparent}
 .copy-hint{display:none;margin:12px auto 0;padding:10px 12px;border-radius:8px;
   background:rgba(110,168,255,.07);border:1px dashed rgba(110,168,255,.28);
   color:rgba(234,234,234,.7);font-size:11px;line-height:1.7;
-  overflow-wrap:anywhere;max-width:340px}
+  overflow-wrap:anywhere;max-width:340px;text-align:center}
 .copy-hint.visible{display:block}
-.copy-status{min-height:18px;margin:10px 0 0;font-size:11px;line-height:1.6;color:rgba(234,234,234,.7)}
+.copy-status{min-height:18px;margin:10px 0 0;font-size:11px;line-height:1.6;
+  color:rgba(234,234,234,.7);text-align:center}
 .error{text-align:center;padding:20px 24px;border-radius:14px;
   background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.2);
   color:#ffb1b1;font-size:14px;line-height:1.7;max-width:340px}
@@ -156,7 +165,12 @@ button{-webkit-tap-highlight-color:transparent}
         <circle class="track" cx="36" cy="36" r="32"></circle>
         <circle class="bar" cx="36" cy="36" r="32"></circle>
       </svg>
-      <div class="count">▶</div>
+      <!-- ✅ play icon via SVG: presisi center, bukan karakter unicode -->
+      <div class="count" aria-hidden="true">
+        <svg class="play-icon" viewBox="0 0 24 24" focusable="false">
+          <path d="M8 5v14l11-7z"></path>
+        </svg>
+      </div>
     </div>
 
     <div class="label" id="labelText" aria-live="polite">Video ready to open</div>
@@ -202,7 +216,6 @@ button{-webkit-tap-highlight-color:transparent}
 (function () {
   'use strict';
 
-  /* ---------- i18n ---------- */
   var I18N = {
     id: {
       title: 'Buka video...',
@@ -274,7 +287,6 @@ button{-webkit-tap-highlight-color:transparent}
   var LANG = detectLang();
   var T = I18N[LANG];
 
-  /* ---------- state ---------- */
   var errorMode = false;
   var targetUrl = '';
   var manualMode = false;
@@ -286,7 +298,6 @@ button{-webkit-tap-highlight-color:transparent}
   var pageLeaving = false;
   var copyOperation = 0;
 
-  /* ---------- DOM (cache) ---------- */
   var $ = function (id) { return document.getElementById(id); };
   var loaderContent = $('loaderContent');
   var errorBox = $('errorBox');
@@ -317,7 +328,6 @@ button{-webkit-tap-highlight-color:transparent}
     return map[detectedApp] || 'In-App Browser';
   }
 
-  /* ---------- language UI ---------- */
   function updateLangSwitchUI() {
     var btns = langSwitchEl.querySelectorAll('button');
     for (var i = 0; i < btns.length; i++) {
@@ -341,7 +351,6 @@ button{-webkit-tap-highlight-color:transparent}
     }
     loaderContent.hidden = false;
     errorBox.hidden = true;
-
     labelEl.textContent = T.label;
 
     if (manualMode) {
@@ -377,7 +386,6 @@ button{-webkit-tap-highlight-color:transparent}
     setLanguage(btn.getAttribute('data-lang'));
   });
 
-  /* ---------- extract video ID ---------- */
   var id = null;
   try {
     var qid = new URLSearchParams(window.location.search).get('id');
@@ -392,7 +400,6 @@ button{-webkit-tap-highlight-color:transparent}
 
   targetUrl = 'https://v-dey.com/player/player.html?id=' + encodeURIComponent(id);
 
-  /* ---------- device & app detection ---------- */
   var ua = navigator.userAgent || '';
   var isAndroid = /Android/i.test(ua);
   var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -415,13 +422,11 @@ button{-webkit-tap-highlight-color:transparent}
 
   isInApp = detectedApp !== 'browser';
 
-  /* ---------- escape strategy ---------- */
   var HARD_BLOCK_ANY = ['telegram'];
   var HARD_BLOCK_IOS = ['tiktok', 'whatsapp', 'line', 'wechat', 'snapchat'];
   if (HARD_BLOCK_ANY.indexOf(detectedApp) !== -1) manualMode = true;
   else if (platform === 'ios' && HARD_BLOCK_IOS.indexOf(detectedApp) !== -1) manualMode = true;
 
-  /* ---------- clipboard ---------- */
   function fallbackCopy(text, ok, fail) {
     var ta = document.createElement('textarea');
     ta.value = text;
@@ -466,7 +471,6 @@ button{-webkit-tap-highlight-color:transparent}
       });
   }
 
-  /* ---------- escape handlers ---------- */
   function escapeAndroid() {
     var scheme = targetUrl.replace(/^https?:\/\//i, '');
     window.location.href =
@@ -494,7 +498,6 @@ button{-webkit-tap-highlight-color:transparent}
     if (escapeTimer !== null) { clearTimeout(escapeTimer); escapeTimer = null; }
   }
 
-  /* ---------- main button ---------- */
   buttonEl.href = targetUrl;
   buttonEl.target = '_blank';
   buttonEl.rel = 'noopener noreferrer';
@@ -507,11 +510,9 @@ button{-webkit-tap-highlight-color:transparent}
     }
     if (escapeAttempted) { switchToManual(); return; }
     escapeAttempted = true;
-
     copyHintEl.textContent = T.copyFallback + ' ' + targetUrl;
     copyHintEl.classList.add('visible');
     copyStatusEl.textContent = '';
-
     doEscape();
     cancelEscapeTimer();
     escapeTimer = setTimeout(function () {
@@ -520,10 +521,8 @@ button{-webkit-tap-highlight-color:transparent}
     }, 1800);
   });
 
-  /* ---------- copy button ---------- */
   copyBtnEl.addEventListener('click', function () { copyTargetUrl(manualCopyStatusEl); });
 
-  /* ---------- try again (simplified) ---------- */
   tryAnywayEl.addEventListener('click', function () {
     cancelEscapeTimer();
     escapeAttempted = true;
@@ -534,7 +533,6 @@ button{-webkit-tap-highlight-color:transparent}
     }, 1800);
   });
 
-  /* ---------- visibility ---------- */
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) cancelEscapeTimer();
   });
@@ -543,10 +541,8 @@ button{-webkit-tap-highlight-color:transparent}
     cancelEscapeTimer();
   });
 
-  /* ---------- init ---------- */
   applyI18n();
 
-  // Fallback redirect jika early redirect di <head> gagal karena suatu hal
   if (!isInApp) {
     pageLeaving = true;
     window.location.replace(targetUrl);
@@ -554,7 +550,6 @@ button{-webkit-tap-highlight-color:transparent}
 })();
 </script>
 
-<!-- Histats — DEFER agar tidak menghambat render / interaksi -->
 <script>
 (function () {
   function loadHistats() {

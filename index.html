@@ -1,696 +1,1261 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Open video...</title>
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="referrer" content="no-referrer">
 
-  <!-- X Cards / Open Graph (untuk konsistensi preview) -->
-  <meta name="twitter:card" content="player">
-  <meta name="twitter:title" content="Open video in browser">
-  <meta name="twitter:description" content="Tap to open the video in your external browser.">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; overflow: hidden; }
-    body {
-      display: grid; place-items: center;
-      background: #0a0a0a;
-      background-image:
-        radial-gradient(circle at 50% 40%, rgba(90,120,255,0.12), transparent 60%),
-        radial-gradient(circle at 50% 100%, rgba(180,90,255,0.08), transparent 55%);
-      color: #eaeaea;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      padding: 16px;
-    }
-    .lang-switch {
-      position: fixed; top: 12px; right: 12px;
-      display: flex; gap: 3px; padding: 3px;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      z-index: 10;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .lang-switch button {
-      background: transparent; border: none;
-      color: rgba(234,234,234,0.45);
-      font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
-      padding: 5px 9px; border-radius: 7px; cursor: pointer;
-      font-family: inherit;
-      transition: background 0.15s ease, color 0.15s ease;
-    }
-    .lang-switch button.active {
-      background: rgba(110,168,255,0.18); color: #8db9ff;
-    }
-    .loader {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 20px; padding: 24px;
-      max-width: 440px; text-align: center;
-      animation: fadeIn 0.3s ease-out both;
-    }
-    .ring { position: relative; width: 72px; height: 72px; }
-    .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
-    .ring .track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 4; }
-    .ring .bar {
-      fill: none; stroke: #6ea8ff; stroke-width: 4; stroke-linecap: round;
-      stroke-dasharray: 201; stroke-dashoffset: 201;
-      animation: fill 1.2s ease-out forwards;
-    }
-    .count {
-      position: absolute; inset: 0;
-      display: grid; place-items: center;
-      font-size: 20px; font-weight: 600; color: #eaeaea;
-    }
-    .label {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 14px; letter-spacing: 0.03em;
-      color: rgba(234,234,234,0.8);
-    }
-    .external-browser {
-      margin-top: 4px; text-align: center; width: 100%;
-      animation: fadeIn 0.3s ease-out both;
-    }
-    .external-browser a {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 12px 22px;
-      border: 1px solid rgba(110,168,255,0.45);
-      border-radius: 11px;
-      background: rgba(110,168,255,0.12);
-      color: #a8c9ff;
-      font-size: 14px; font-weight: 700;
-      text-decoration: none; letter-spacing: 0.01em;
-      transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
-      -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 18px -6px rgba(110,168,255,0.35);
-      cursor: pointer;
-    }
-    .external-browser a:hover {
-      background: rgba(110,168,255,0.2);
-      border-color: rgba(110,168,255,0.7);
-    }
-    .external-browser a:active { transform: scale(0.98); }
-    .external-browser p {
-      margin: 11px 0 0;
-      color: rgba(234,234,234,0.55);
-      font-size: 12px; line-height: 1.55;
-      max-width: 320px; margin-left: auto; margin-right: auto;
-    }
-    .arrow-down {
-      margin: 10px auto 4px;
-      width: 38px; height: 38px;
-      color: #7eb3ff;
-      animation: bounceDown 1.35s cubic-bezier(0.45,0,0.55,1) infinite;
-      pointer-events: none; user-select: none;
-      display: flex; align-items: center; justify-content: center;
-      filter: drop-shadow(0 0 6px rgba(110,168,255,0.7))
-              drop-shadow(0 0 14px rgba(110,168,255,0.35));
-    }
-    .arrow-down svg {
-      width: 34px; height: 34px; display: block;
-      stroke: currentColor; stroke-width: 3;
-      stroke-linecap: round; stroke-linejoin: round; fill: none;
-    }
-    .arrow-down svg polyline.top { opacity: 0.4; }
-    .arrow-down svg polyline.bot { opacity: 1; }
-    @keyframes bounceDown {
-      0%   { transform: translateY(-3px); opacity: 0.65; }
-      50%  { transform: translateY(7px);  opacity: 1; }
-      100% { transform: translateY(-3px); opacity: 0.65; }
-    }
-    .manual-guide { display: none; width: 100%; animation: fadeIn 0.3s ease-out both; }
-    .manual-guide.visible { display: block; }
-    .guide-card {
-      padding: 18px 18px 16px;
-      border-radius: 14px;
-      background: rgba(110,168,255,0.06);
-      border: 1px solid rgba(110,168,255,0.25);
-      text-align: left; max-width: 380px; margin: 0 auto;
-    }
-    .guide-title {
-      margin: 0 0 8px;
-      font-size: 14px; font-weight: 700; color: #a8c9ff;
-      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    }
-    .guide-title::before {
-      content: '⚠'; display: inline-grid; place-items: center;
-      width: 22px; height: 22px; border-radius: 50%;
-      background: rgba(255,190,90,0.15); color: #ffce7a;
-      font-size: 12px; flex-shrink: 0;
-    }
-    .guide-app {
-      display: inline-block; padding: 1px 6px; margin: 0 2px;
-      border-radius: 4px; background: rgba(110,168,255,0.18);
-      color: #a8c9ff; font-weight: 600;
-    }
-    .guide-steps {
-      margin: 0 0 14px;
-      font-size: 12.5px; line-height: 1.65;
-      color: rgba(234,234,234,0.78);
-    }
-    .guide-steps strong { color: #c5d9ff; }
-    .copy-row { display: flex; gap: 8px; align-items: stretch; margin-top: 4px; }
-    .copy-url {
-      flex: 1; min-width: 0; padding: 9px 11px;
-      border-radius: 8px;
-      border: 1px solid rgba(110,168,255,0.2);
-      background: rgba(0,0,0,0.35);
-      color: rgba(234,234,234,0.7);
-      font-size: 10.5px;
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      -webkit-appearance: none;
-    }
-    .copy-url:focus { outline: none; border-color: rgba(110,168,255,0.5); }
-    .copy-btn {
-      flex-shrink: 0; padding: 9px 14px;
-      border-radius: 8px;
-      border: 1px solid rgba(110,168,255,0.4);
-      background: rgba(110,168,255,0.15);
-      color: #a8c9ff;
-      font-size: 12px; font-weight: 700;
-      font-family: inherit; cursor: pointer;
-      transition: background 0.15s ease, border-color 0.15s ease;
-      -webkit-tap-highlight-color: transparent;
-      white-space: nowrap;
-    }
-    .copy-btn:hover {
-      background: rgba(110,168,255,0.24);
-      border-color: rgba(110,168,255,0.7);
-    }
-    .copy-btn.copied {
-      background: rgba(120,200,140,0.18);
-      border-color: rgba(120,200,140,0.5);
-      color: #9be0ad;
-    }
-    .try-anyway {
-      display: block; margin-top: 12px; text-align: center;
-      font-size: 11px; color: rgba(234,234,234,0.35);
-      text-decoration: underline; text-underline-offset: 3px;
-      background: none; border: none; padding: 4px;
-      cursor: pointer; font-family: inherit;
-      -webkit-tap-highlight-color: transparent; width: 100%;
-    }
-    .try-anyway:hover { color: rgba(234,234,234,0.6); }
-    .copy-hint {
-      display: none; margin: 10px auto 0;
-      padding: 8px 11px; border-radius: 8px;
-      background: rgba(110,168,255,0.07);
-      border: 1px dashed rgba(110,168,255,0.28);
-      color: rgba(234,234,234,0.6);
-      font-size: 10.5px; line-height: 1.55;
-      word-break: break-all; max-width: 340px;
-    }
-    .copy-hint.visible { display: block; }
-    .error {
-      text-align: center; padding: 20px 24px; border-radius: 14px;
-      background: rgba(255,90,90,0.08);
-      border: 1px solid rgba(255,90,90,0.2);
-      color: #ff9c9c; font-size: 14px; line-height: 1.5;
-      animation: fadeIn 0.3s ease-out both; max-width: 340px;
-    }
-    .error strong { display: block; font-size: 15px; margin-bottom: 6px; color: #ffb1b1; }
-    @keyframes fill { to { stroke-dashoffset: 0; } }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .external-browser a { transition: none; }
+    <title>Open video...</title>
+
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+
+    <!-- X Cards / Open Graph -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Open video in browser">
+    <meta name="twitter:description" content="Tap to open the video in your browser.">
+
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      html {
+        min-height: 100%;
+        background: #0a0a0a;
+      }
+
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        background: #0a0a0a;
+        background-image:
+          radial-gradient(circle at 50% 40%,
+            rgba(90, 120, 255, 0.12),
+            transparent 60%),
+          radial-gradient(circle at 50% 100%,
+            rgba(180, 90, 255, 0.08),
+            transparent 55%);
+        color: #eaeaea;
+        font-family:
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          "Helvetica Neue",
+          Arial,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        padding: 72px 16px 24px;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .lang-switch {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        gap: 3px;
+        padding: 3px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        z-index: 10;
+      }
+
+      .lang-switch button {
+        background: transparent;
+        border: none;
+        color: rgba(234, 234, 234, 0.55);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 6px 10px;
+        border-radius: 7px;
+        cursor: pointer;
+      }
+
+      .lang-switch button.active {
+        background: rgba(110, 168, 255, 0.18);
+        color: #8db9ff;
+      }
+
+      .lang-switch button:focus-visible,
+      .external-browser a:focus-visible,
+      .copy-btn:focus-visible,
+      .try-anyway:focus-visible {
+        outline: 2px solid #8db9ff;
+        outline-offset: 3px;
+      }
+
+      .loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 24px;
+        width: 100%;
+        max-width: 440px;
+        text-align: center;
+        animation: fadeIn 0.3s ease-out both;
+      }
+
+      .ring {
+        position: relative;
+        width: 72px;
+        height: 72px;
+        flex-shrink: 0;
+      }
+
+      .ring svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+        display: block;
+      }
+
+      .ring .track {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.08);
+        stroke-width: 4;
+      }
+
+      .ring .bar {
+        fill: none;
+        stroke: #6ea8ff;
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-dasharray: 201;
+        stroke-dashoffset: 201;
+        animation: fill 1.2s ease-out forwards;
+      }
+
+      .count {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 20px;
+        font-weight: 600;
+        color: #eaeaea;
+      }
+
+      .label {
+        font-size: 14px;
+        letter-spacing: 0.03em;
+        line-height: 1.6;
+        color: rgba(234, 234, 234, 0.85);
+      }
+
+      .external-browser {
+        margin-top: 4px;
+        text-align: center;
+        width: 100%;
+      }
+
+      .external-browser a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 13px 22px;
+        border: 1px solid rgba(110, 168, 255, 0.45);
+        border-radius: 11px;
+        background: rgba(110, 168, 255, 0.12);
+        color: #a8c9ff;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        letter-spacing: 0.01em;
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease,
+          transform 0.1s ease;
+        box-shadow: 0 4px 18px -6px rgba(110, 168, 255, 0.35);
+        cursor: pointer;
+      }
+
+      .external-browser a:hover {
+        background: rgba(110, 168, 255, 0.2);
+        border-color: rgba(110, 168, 255, 0.7);
+      }
+
+      .external-browser a:active {
+        transform: scale(0.98);
+      }
+
+      .external-browser p {
+        margin: 12px auto 0;
+        color: rgba(234, 234, 234, 0.6);
+        font-size: 12px;
+        line-height: 1.65;
+        max-width: 330px;
+      }
+
       .arrow-down {
-        animation: none; opacity: 1;
-        filter: drop-shadow(0 0 6px rgba(110,168,255,0.7));
+        margin: 10px auto 4px;
+        width: 38px;
+        height: 38px;
+        color: #7eb3ff;
+        animation: bounceDown 1.35s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        pointer-events: none;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        filter:
+          drop-shadow(0 0 6px rgba(110, 168, 255, 0.7)) drop-shadow(0 0 14px rgba(110, 168, 255, 0.35));
       }
-      .arrow-down svg polyline.top { opacity: 0.55; }
-    }
-  </style>
-</head>
-<body>
-  <div class="lang-switch" id="langSwitch" aria-label="Language">
-    <button type="button" data-lang="id">ID</button>
-    <button type="button" data-lang="en">EN</button>
-  </div>
 
-  <div class="loader" id="loader">
-    <div class="ring">
-      <svg viewBox="0 0 72 72" aria-hidden="true">
-        <circle class="track" cx="36" cy="36" r="32"></circle>
-        <circle class="bar" cx="36" cy="36" r="32"></circle>
-      </svg>
-      <div class="count">▶</div>
+      .arrow-down svg {
+        width: 34px;
+        height: 34px;
+        display: block;
+        stroke: currentColor;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .arrow-down svg polyline.top {
+        opacity: 0.4;
+      }
+
+      .arrow-down svg polyline.bot {
+        opacity: 1;
+      }
+
+      .manual-guide {
+        display: none;
+        width: 100%;
+        animation: fadeIn 0.3s ease-out both;
+      }
+
+      .manual-guide.visible {
+        display: block;
+      }
+
+      .guide-card {
+        padding: 18px;
+        border-radius: 14px;
+        background: rgba(110, 168, 255, 0.06);
+        border: 1px solid rgba(110, 168, 255, 0.25);
+        text-align: left;
+        max-width: 380px;
+        margin: 0 auto;
+      }
+
+      .guide-title {
+        margin: 0 0 12px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #a8c9ff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        line-height: 1.6;
+      }
+
+      .guide-title::before {
+        content: "!";
+        display: inline-grid;
+        place-items: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(255, 190, 90, 0.15);
+        color: #ffce7a;
+        font-size: 12px;
+        flex-shrink: 0;
+      }
+
+      .guide-app {
+        display: inline-block;
+        padding: 2px 7px;
+        border-radius: 5px;
+        background: rgba(110, 168, 255, 0.18);
+        color: #a8c9ff;
+        font-weight: 600;
+      }
+
+      .guide-steps {
+        margin: 0 0 16px;
+        font-size: 12.5px;
+        line-height: 1.8;
+        color: rgba(234, 234, 234, 0.8);
+      }
+
+      .guide-steps strong {
+        color: #c5d9ff;
+      }
+
+      .copy-row {
+        display: flex;
+        gap: 8px;
+        align-items: stretch;
+        margin-top: 4px;
+      }
+
+      .copy-url {
+        flex: 1;
+        min-width: 0;
+        width: 0;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(110, 168, 255, 0.2);
+        background: rgba(0, 0, 0, 0.35);
+        color: rgba(234, 234, 234, 0.85);
+        font-size: 11px;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        -webkit-appearance: none;
+      }
+
+      .copy-url:focus {
+        outline: 2px solid rgba(110, 168, 255, 0.5);
+        outline-offset: 1px;
+      }
+
+      .copy-btn {
+        flex-shrink: 0;
+        padding: 10px 13px;
+        border-radius: 8px;
+        border: 1px solid rgba(110, 168, 255, 0.4);
+        background: rgba(110, 168, 255, 0.15);
+        color: #a8c9ff;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .copy-btn:hover {
+        background: rgba(110, 168, 255, 0.24);
+        border-color: rgba(110, 168, 255, 0.7);
+      }
+
+      .copy-btn.copied {
+        background: rgba(120, 200, 140, 0.18);
+        border-color: rgba(120, 200, 140, 0.5);
+        color: #9be0ad;
+      }
+
+      .try-anyway {
+        display: block;
+        margin-top: 12px;
+        text-align: center;
+        font-size: 12px;
+        color: rgba(234, 234, 234, 0.6);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        background: none;
+        border: none;
+        padding: 8px 4px;
+        cursor: pointer;
+        width: 100%;
+      }
+
+      .try-anyway:hover {
+        color: #a8c9ff;
+      }
+
+      .copy-hint {
+        display: none;
+        margin: 12px auto 0;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: rgba(110, 168, 255, 0.07);
+        border: 1px dashed rgba(110, 168, 255, 0.28);
+        color: rgba(234, 234, 234, 0.7);
+        font-size: 11px;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+        max-width: 340px;
+      }
+
+      .copy-hint.visible {
+        display: block;
+      }
+
+      .copy-status {
+        min-height: 18px;
+        margin: 10px 0 0;
+        font-size: 11px;
+        line-height: 1.6;
+        color: rgba(234, 234, 234, 0.7);
+      }
+
+      .error {
+        text-align: center;
+        padding: 20px 24px;
+        border-radius: 14px;
+        background: rgba(255, 90, 90, 0.08);
+        border: 1px solid rgba(255, 90, 90, 0.2);
+        color: #ffb1b1;
+        font-size: 14px;
+        line-height: 1.7;
+        max-width: 340px;
+      }
+
+      .error strong {
+        display: block;
+        font-size: 15px;
+        margin-bottom: 6px;
+        color: #ffb1b1;
+      }
+
+      @keyframes fill {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes bounceDown {
+        0% {
+          transform: translateY(-3px);
+          opacity: 0.65;
+        }
+
+        50% {
+          transform: translateY(7px);
+          opacity: 1;
+        }
+
+        100% {
+          transform: translateY(-3px);
+          opacity: 0.65;
+        }
+      }
+
+      @media (max-width: 360px) {
+        .loader {
+          padding: 16px 8px;
+        }
+
+        .guide-card {
+          padding: 15px 12px;
+        }
+
+        .external-browser a {
+          padding: 12px 16px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+
+        .arrow-down {
+          animation: none;
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <!-- Language switch -->
+    <div class="lang-switch" id="langSwitch" aria-label="Language">
+      <button type="button" data-lang="id">ID</button>
+      <button type="button" data-lang="en">EN</button>
     </div>
 
-    <div class="label" id="labelText">Video ready to open</div>
+    <main class="loader" id="loader">
 
-    <div class="external-browser" id="externalBrowserBox">
-      <a href="#" id="openExternalBrowser">↗ Open in Browser</a>
-      <p id="hintText">Tap the button above to open the video in Chrome or your external browser. It will not open automatically.</p>
+      <div class="ring" aria-hidden="true">
+        <svg viewBox="0 0 72 72">
+          <circle class="track" cx="36" cy="36" r="32">
+          </circle>
 
-      <div class="arrow-down" id="arrowDown" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <polyline class="top" points="6 6 12 12 18 6"></polyline>
-          <polyline class="bot" points="6 13 12 19 18 13"></polyline>
+          <circle class="bar" cx="36" cy="36" r="32">
+          </circle>
         </svg>
+
+        <div class="count">▶</div>
       </div>
 
-      <div class="copy-hint" id="copyHint"></div>
-    </div>
+      <div class="label" id="labelText" aria-live="polite">
+        Video ready to open
+      </div>
 
-    <div class="manual-guide" id="manualGuide">
-      <div class="guide-card">
-        <p class="guide-title" id="guideTitle">Open in External Browser</p>
-        <p class="guide-steps" id="guideSteps"></p>
-        <div class="copy-row">
-          <input type="text" class="copy-url" id="copyUrl" readonly>
-          <button type="button" class="copy-btn" id="copyBtn">Copy</button>
+      <!-- External browser button -->
+      <section class="external-browser" id="externalBrowserBox" hidden>
+
+        <a href="#" id="openExternalBrowser">
+          ↗ Open in Browser
+        </a>
+
+        <p id="hintText">
+          Tap the button to try opening the video in your external browser.
+        </p>
+
+        <div class="arrow-down" id="arrowDown" aria-hidden="true">
+
+          <svg viewBox="0 0 24 24">
+            <polyline class="top" points="6 6 12 12 18 6">
+            </polyline>
+
+            <polyline class="bot" points="6 13 12 19 18 13">
+            </polyline>
+          </svg>
         </div>
-        <button type="button" class="try-anyway" id="tryAnyway">Try anyway</button>
-      </div>
-    </div>
-  </div>
 
-  <script>
-    (function () {
-      'use strict';
+        <div class="copy-hint" id="copyHint">
+        </div>
 
-      /* ================= i18n ================= */
-      var I18N = {
-        id: {
-          title: 'Buka video...',
-          label: 'Video siap dibuka',
-          btn: '↗ Buka di Browser',
-          hint: 'Ketuk tombol di atas untuk membuka video di Chrome atau browser eksternal Anda. Video tidak terbuka otomatis.',
-          copyFallback: 'Jika video tidak terbuka, salin tautan ini ke browser: ',
-          guideTitle: 'Buka di Browser Eksternal',
-          guideGeneric: 'Ketuk ikon menu (<strong>⋯</strong> atau <strong>⋮</strong>) di pojok aplikasi, lalu pilih <strong>Open in Browser</strong> / <strong>Buka di Browser</strong>.',
-          copyBtn: 'Salin',
-          copied: '✓ Tersalin',
-          tryAnyway: 'Coba tetap buka',
-          errTitle: 'ID tidak ditemukan',
-          errBody: 'Pastikan URL berisi ID, contoh:<br>videil.com/?id=fa0zJuGW1',
-          apps: {
-            telegram: 'Ketuk ikon <strong>⋯</strong> di pojok kanan atas pesan, lalu pilih <strong>Open in Browser</strong>.',
-            twitter: 'Di halaman X ini, ketuk ikon <strong>Bagikan (□↑)</strong> di pojok kanan bawah (bila tampil), lalu pilih <strong>Open in Safari</strong> / <strong>Buka di Browser</strong>. Bila menggunakan mode webview internal, ketuk <strong>⋯</strong> pojok kanan atas.',
-            tiktok: 'Ketuk ikon <strong>⋯</strong> (share) di sisi kanan, lalu pilih <strong>Open in Browser</strong>.',
-            whatsapp: 'Ketuk ikon <strong>⋯</strong> di pojok kanan atas, lalu pilih <strong>Open in Browser</strong>.',
-            line: 'Ketuk ikon <strong>⋯</strong> di pojok kanan atas, lalu pilih <strong>Open in Browser</strong>.',
-            wechat: 'Ketuk ikon <strong>⋯</strong> di pojok kanan atas, lalu pilih <strong>Open in Browser</strong>.',
-            snapchat: 'Ketuk ikon <strong>⋯</strong> di pojok kanan atas, lalu pilih <strong>Open in Browser</strong>.',
-            instagram: 'Ketuk ikon <strong>⋯</strong> di pojok kanan atas, lalu pilih <strong>Open in Browser</strong>.',
-            facebook: 'Ketuk ikon <strong>⋯</strong> di pojok kanan atas, lalu pilih <strong>Open in Browser</strong>.',
-            other: 'Ketuk ikon menu (<strong>⋯</strong> atau <strong>⋮</strong>) di aplikasi, lalu pilih <strong>Open in Browser</strong>.'
+        <p class="copy-status" id="copyStatus" aria-live="polite">
+        </p>
+
+      </section>
+
+      <!-- Manual fallback -->
+      <section class="manual-guide" id="manualGuide">
+
+        <div class="guide-card">
+
+          <p class="guide-title" id="guideTitle">
+            Open Video in Browser
+          </p>
+
+          <p class="guide-steps" id="guideSteps">
+          </p>
+
+          <div class="copy-row">
+
+            <input type="text" class="copy-url" id="copyUrl" readonly aria-label="Video URL">
+
+            <button type="button" class="copy-btn" id="copyBtn">
+              Copy Link
+            </button>
+
+          </div>
+
+          <p class="copy-status" id="manualCopyStatus" aria-live="polite">
+          </p>
+
+          <button type="button" class="try-anyway" id="tryAnyway">
+            Try Opening Again
+          </button>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <script>
+      (function() {
+        'use strict';
+        /* =========================================
+           INTERNATIONALIZATION
+        ========================================= */
+        var I18N = {
+          id: {
+            title: 'Buka video...',
+            label: 'Video siap dibuka',
+            btn: '↗ Buka di Browser',
+            hint: 'Ketuk tombol di atas untuk mencoba membuka video ' +
+              'di browser eksternal.',
+            copyFallback: 'Jika video tidak terbuka, salin tautan berikut ' +
+              'dan buka melalui Chrome atau Safari:',
+            guideTitle: 'Buka Video di Browser',
+            guideGeneric: 'Ketuk ikon menu (<strong>⋯</strong> atau ' +
+              '<strong>⋮</strong>) di aplikasi, lalu cari opsi ' +
+              '<strong>Open in Browser</strong> atau ' +
+              '<strong>Buka di Browser</strong>. ' +
+              'Jika opsi tersebut tidak tersedia, salin tautan ' +
+              'di bawah, buka Chrome atau Safari secara manual, ' +
+              'lalu tempelkan tautannya.',
+            copyBtn: 'Salin Tautan',
+            copied: '✓ Tersalin',
+            copySuccess: 'Tautan berhasil disalin.',
+            copyFailed: 'Penyalinan otomatis gagal. Tekan dan tahan tautan ' +
+              'di atas untuk menyalinnya.',
+            tryAnyway: 'Coba Buka Lagi',
+            errTitle: 'ID Video Tidak Ditemukan',
+            errBody: 'Pastikan URL memiliki ID video.<br><br>' +
+              'Contoh:<br>' +
+              '<code>?id=fa0zJuGW1</code>',
+            apps: {
+              telegram: 'Ketuk ikon menu <strong>⋯</strong> pada pesan ' +
+                'atau halaman, kemudian pilih ' +
+                '<strong>Open in Browser</strong> jika tersedia. ' +
+                'Jika tidak tersedia, salin tautan di bawah, ' +
+                'buka Chrome atau Safari, lalu tempelkan tautannya.',
+              twitter: 'Jika tombol tidak berhasil, ketuk ikon menu ' +
+                '<strong>⋯</strong> di halaman X dan cari ' +
+                '<strong>Open in Browser</strong> jika tersedia. ' +
+                'Jika tidak ada, salin tautan di bawah, buka ' +
+                'Chrome atau Safari secara manual, lalu tempelkan ' +
+                'tautannya.',
+              instagram: 'Jika video tidak terbuka di browser eksternal, ' +
+                'buka menu atau pilihan browser pada Instagram dan ' +
+                'cari <strong>Open in Browser</strong> jika tersedia. ' +
+                'Jika tidak ada, salin tautan di bawah dan buka ' +
+                'melalui Chrome atau Safari.',
+              tiktok: 'Buka menu atau pilihan berbagi pada TikTok dan ' +
+                'cari opsi untuk membuka tautan di browser eksternal. ' +
+                'Jika tidak tersedia, salin tautan di bawah, ' +
+                'buka Chrome atau Safari, lalu tempelkan tautannya.',
+              whatsapp: 'Buka menu <strong>⋯</strong> jika tersedia, lalu ' +
+                'cari <strong>Open in Browser</strong>. Jika opsi ' +
+                'tersebut tidak tersedia, salin tautan di bawah, ' +
+                'buka Chrome atau Safari, lalu tempelkan tautannya.',
+              line: 'Buka menu pada LINE dan cari pilihan ' +
+                '<strong>Open in Browser</strong> jika tersedia. ' +
+                'Jika tidak ada, salin tautan di bawah, buka ' +
+                'Chrome atau Safari, lalu tempelkan tautannya.',
+              wechat: 'Buka menu <strong>⋯</strong> dan cari opsi ' +
+                '<strong>Open in Browser</strong> jika tersedia. ' +
+                'Jika tidak ada, salin tautan di bawah dan buka ' +
+                'melalui Chrome atau Safari.',
+              snapchat: 'Cari opsi untuk membuka tautan di browser eksternal ' +
+                'pada menu Snapchat jika tersedia. Jika tidak ada, ' +
+                'salin tautan di bawah dan buka melalui Chrome ' +
+                'atau Safari.',
+              facebook: 'Buka menu pada halaman Facebook dan cari ' +
+                '<strong>Open in Browser</strong> jika tersedia. ' +
+                'Jika tidak ada, salin tautan di bawah, buka ' +
+                'Chrome atau Safari, lalu tempelkan tautannya.',
+              other: 'Ketuk ikon menu (<strong>⋯</strong> atau ' +
+                '<strong>⋮</strong>) pada aplikasi, lalu cari ' +
+                '<strong>Open in Browser</strong> jika tersedia. ' +
+                'Jika tidak ada, salin tautan di bawah, buka ' +
+                'Chrome atau Safari, lalu tempelkan tautannya.'
+            }
+          },
+          en: {
+            title: 'Open video...',
+            label: 'Video ready to open',
+            btn: '↗ Open in Browser',
+            hint: 'Tap the button above to try opening the video ' +
+              'in your external browser.',
+            copyFallback: 'If the video does not open, copy the link below ' +
+              'and open it in Chrome or Safari:',
+            guideTitle: 'Open Video in Browser',
+            guideGeneric: 'Tap the app menu (<strong>⋯</strong> or ' +
+              '<strong>⋮</strong>) and look for ' +
+              '<strong>Open in Browser</strong>. If that option ' +
+              'is unavailable, copy the link below, open Chrome ' +
+              'or Safari manually, and paste the link.',
+            copyBtn: 'Copy Link',
+            copied: '✓ Copied',
+            copySuccess: 'Link copied successfully.',
+            copyFailed: 'Automatic copying failed. Press and hold the link ' +
+              'above to copy it.',
+            tryAnyway: 'Try Opening Again',
+            errTitle: 'Video ID Not Found',
+            errBody: 'Make sure the URL contains a video ID.<br><br>' +
+              'Example:<br>' +
+              '<code>?id=fa0zJuGW1</code>',
+            apps: {
+              telegram: 'Tap the menu icon <strong>⋯</strong> on the ' +
+                'message or page, then choose ' +
+                '<strong>Open in Browser</strong> if available. ' +
+                'Otherwise, copy the link below, open Chrome or ' +
+                'Safari, and paste the link.',
+              twitter: 'If the button does not work, open the menu ' +
+                '<strong>⋯</strong> in X and look for ' +
+                '<strong>Open in Browser</strong> if available. ' +
+                'Otherwise, copy the link below, open Chrome or ' +
+                'Safari manually, and paste the link.',
+              instagram: 'If the video does not open externally, check ' +
+                'Instagram’s menu or browser options for ' +
+                '<strong>Open in Browser</strong>. If unavailable, ' +
+                'copy the link below and open it in Chrome or Safari.',
+              tiktok: 'Check TikTok’s menu or sharing options for a way ' +
+                'to open the link externally. If unavailable, copy ' +
+                'the link below, open Chrome or Safari, and paste it.',
+              whatsapp: 'Open the <strong>⋯</strong> menu if available and ' +
+                'look for <strong>Open in Browser</strong>. If ' +
+                'unavailable, copy the link below, open Chrome or ' +
+                'Safari, and paste the link.',
+              line: 'Check LINE’s menu for <strong>Open in Browser</strong> ' +
+                'if available. Otherwise, copy the link below, open ' +
+                'Chrome or Safari, and paste the link.',
+              wechat: 'Open the <strong>⋯</strong> menu and look for ' +
+                '<strong>Open in Browser</strong> if available. ' +
+                'Otherwise, copy the link below and open it in ' +
+                'Chrome or Safari.',
+              snapchat: 'Check Snapchat’s menu for an option to open the ' +
+                'link externally. If unavailable, copy the link ' +
+                'below and open it in Chrome or Safari.',
+              facebook: 'Open Facebook’s page menu and look for ' +
+                '<strong>Open in Browser</strong> if available. ' +
+                'Otherwise, copy the link below, open Chrome or ' +
+                'Safari, and paste the link.',
+              other: 'Open the app menu (<strong>⋯</strong> or ' +
+                '<strong>⋮</strong>) and look for ' +
+                '<strong>Open in Browser</strong> if available. ' +
+                'Otherwise, copy the link below, open Chrome or ' +
+                'Safari, and paste the link.'
+            }
           }
-        },
-        en: {
-          title: 'Open video...',
-          label: 'Video ready to open',
-          btn: '↗ Open in Browser',
-          hint: 'Tap the button above to open the video in Chrome or your external browser. It will not open automatically.',
-          copyFallback: 'If the video does not open, copy this link into your browser: ',
-          guideTitle: 'Open in External Browser',
-          guideGeneric: 'Tap the menu icon (<strong>⋯</strong> or <strong>⋮</strong>) at the corner of the app, then choose <strong>Open in Browser</strong>.',
-          copyBtn: 'Copy',
-          copied: '✓ Copied',
-          tryAnyway: 'Try anyway',
-          errTitle: 'ID not found',
-          errBody: 'Make sure the URL contains an ID, e.g.:<br>videil.com/?id=fa0zJuGW1',
-          apps: {
-            telegram: 'Tap the <strong>⋯</strong> icon in the top right corner of the message, then choose <strong>Open in Browser</strong>.',
-            twitter: 'In this X view, tap the <strong>Share (□↑)</strong> icon at the bottom right (if visible), then choose <strong>Open in Safari</strong> or <strong>Open in Browser</strong>. If shown in X\'s internal webview, tap <strong>⋯</strong> at the top right.',
-            tiktok: 'Tap the <strong>⋯</strong> (share) icon on the right side, then choose <strong>Open in Browser</strong>.',
-            whatsapp: 'Tap the <strong>⋯</strong> icon at the top right, then choose <strong>Open in Browser</strong>.',
-            line: 'Tap the <strong>⋯</strong> icon at the top right, then choose <strong>Open in Browser</strong>.',
-            wechat: 'Tap the <strong>⋯</strong> icon at the top right, then choose <strong>Open in Browser</strong>.',
-            snapchat: 'Tap the <strong>⋯</strong> icon at the top right, then choose <strong>Open in Browser</strong>.',
-            instagram: 'Tap the <strong>⋯</strong> icon at the top right, then choose <strong>Open in Browser</strong>.',
-            facebook: 'Tap the <strong>⋯</strong> icon at the top right, then choose <strong>Open in Browser</strong>.',
-            other: 'Tap the menu icon (<strong>⋯</strong> or <strong>⋮</strong>) in the app, then choose <strong>Open in Browser</strong>.'
+        };
+        /* =========================================
+           LANGUAGE
+        ========================================= */
+        function detectLang() {
+          var langs = navigator.languages &&
+            navigator.languages.length ?
+            navigator.languages : [navigator.language || 'en'];
+          for (var i = 0; i < langs.length; i++) {
+            var code = (langs[i] || '').toLowerCase();
+            if (
+              code === 'id' ||
+              code.indexOf('id-') === 0 ||
+              code === 'in' ||
+              code.indexOf('in-') === 0
+            ) {
+              return 'id';
+            }
+            if (code.indexOf('en') === 0) {
+              return 'en';
+            }
+          }
+          return 'en';
+        }
+        var LANG = detectLang();
+        var T = I18N[LANG];
+        /* =========================================
+           STATE
+        ========================================= */
+        var errorMode = false;
+        var targetUrl = '';
+        var manualMode = false;
+        var detectedApp = 'other';
+        var platform = 'other';
+        var isInApp = false;
+        var escapeAttempted = false;
+        var escapeTimer = null;
+        var pageLeaving = false;
+        var copyOperation = 0;
+        /* =========================================
+           DOM
+        ========================================= */
+        var loaderEl = document.getElementById('loader');
+        var labelEl = document.getElementById('labelText');
+        var hintEl = document.getElementById('hintText');
+        var buttonEl = document.getElementById('openExternalBrowser');
+        var externalBox = document.getElementById('externalBrowserBox');
+        var copyHintEl = document.getElementById('copyHint');
+        var copyStatusEl = document.getElementById('copyStatus');
+        var manualGuide = document.getElementById('manualGuide');
+        var guideTitle = document.getElementById('guideTitle');
+        var guideSteps = document.getElementById('guideSteps');
+        var copyUrlEl = document.getElementById('copyUrl');
+        var copyBtnEl = document.getElementById('copyBtn');
+        var manualCopyStatusEl =
+          document.getElementById('manualCopyStatus');
+        var tryAnywayEl = document.getElementById('tryAnyway');
+        var langSwitchEl = document.getElementById('langSwitch');
+        /* =========================================
+           APP NAME
+        ========================================= */
+        function appName() {
+          var map = {
+            telegram: 'Telegram',
+            twitter: 'X',
+            tiktok: 'TikTok',
+            whatsapp: 'WhatsApp',
+            line: 'LINE',
+            wechat: 'WeChat',
+            snapchat: 'Snapchat',
+            instagram: 'Instagram',
+            facebook: 'Facebook',
+            other: 'In-App Browser',
+            browser: 'Browser'
+          };
+          return map[detectedApp] || 'In-App Browser';
+        }
+        /* =========================================
+           LANGUAGE UI
+        ========================================= */
+        function updateLangSwitchUI() {
+          var btns = langSwitchEl.querySelectorAll('button');
+          for (var i = 0; i < btns.length; i++) {
+            var active =
+              btns[i].getAttribute('data-lang') === LANG;
+            btns[i].classList.toggle('active', active);
+            btns[i].setAttribute(
+              'aria-pressed',
+              active ? 'true' : 'false'
+            );
           }
         }
-      };
 
-      function detectLang() {
-        var langs = navigator.languages && navigator.languages.length
-          ? navigator.languages : [navigator.language || 'en'];
-        for (var i = 0; i < langs.length; i++) {
-          var code = (langs[i] || '').toLowerCase();
-          if (code === 'id' || code.indexOf('id-') === 0 || code === 'in' || code.indexOf('in-') === 0) return 'id';
-          if (code.indexOf('en') === 0) return 'en';
-        }
-        return 'en';
-      }
-
-      var LANG = detectLang();
-      var T = I18N[LANG];
-
-      /* ================= State ================= */
-      var errorMode = false;
-      var targetUrl = '';
-      var manualMode = false;
-      var detectedApp = 'other';
-      var platform = 'other';
-      var isInApp = false;
-      var escapeScheme = 'open';
-
-      /* ================= DOM ================= */
-      var loaderEl = document.getElementById('loader');
-      var labelEl = document.getElementById('labelText');
-      var hintEl = document.getElementById('hintText');
-      var buttonEl = document.getElementById('openExternalBrowser');
-      var externalBox = document.getElementById('externalBrowserBox');
-      var copyHintEl = document.getElementById('copyHint');
-      var manualGuide = document.getElementById('manualGuide');
-      var guideTitle = document.getElementById('guideTitle');
-      var guideSteps = document.getElementById('guideSteps');
-      var copyUrlEl = document.getElementById('copyUrl');
-      var copyBtnEl = document.getElementById('copyBtn');
-      var tryAnywayEl = document.getElementById('tryAnyway');
-      var langSwitchEl = document.getElementById('langSwitch');
-
-      function updateLangSwitchUI() {
-        var btns = langSwitchEl.querySelectorAll('button');
-        for (var i = 0; i < btns.length; i++) {
-          btns[i].classList.toggle('active', btns[i].getAttribute('data-lang') === LANG);
-        }
-      }
-
-      function appName() {
-        var map = { telegram: 'Telegram', twitter: 'X', tiktok: 'TikTok',
-                    whatsapp: 'WhatsApp', line: 'LINE', wechat: 'WeChat',
-                    snapchat: 'Snapchat', instagram: 'Instagram', facebook: 'Facebook',
-                    other: 'In-App Browser' };
-        return map[detectedApp] || 'In-App Browser';
-      }
-
-      function applyI18n() {
-        document.documentElement.lang = LANG;
-        document.title = T.title;
-
-        if (errorMode) {
-          loaderEl.innerHTML =
-            '<div class="error"><strong>' + T.errTitle + '</strong>' + T.errBody + '</div>';
-          updateLangSwitchUI();
-          return;
-        }
-
-        labelEl.textContent = T.label;
-
-        if (manualMode) {
-          externalBox.style.display = 'none';
-          manualGuide.classList.add('visible');
-          guideTitle.innerHTML = T.guideTitle + ' — <span class="guide-app">' + appName() + '</span>';
-          guideSteps.innerHTML = T.apps[detectedApp] || T.apps.other;
-          copyUrlEl.value = targetUrl;
-          copyBtnEl.textContent = T.copyBtn;
-          copyBtnEl.classList.remove('copied');
-          tryAnywayEl.textContent = T.tryAnyway;
-        } else {
-          externalBox.style.display = isInApp ? '' : 'none';
-          manualGuide.classList.remove('visible');
-          buttonEl.textContent = T.btn;
-          hintEl.textContent = T.hint;
-          copyHintEl.classList.remove('visible');
-          copyHintEl.textContent = '';
-        }
-
-        updateLangSwitchUI();
-      }
-
-      function setLanguage(code) {
-        LANG = (code === 'id') ? 'id' : 'en';
-        T = I18N[LANG];
-        applyI18n();
-      }
-
-      langSwitchEl.addEventListener('click', function (e) {
-        var btn = e.target.closest('button[data-lang]');
-        if (!btn) return;
-        setLanguage(btn.getAttribute('data-lang'));
-      });
-
-      /* ================= Clipboard ================= */
-      function copyToClipboard(text, onSuccess) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(function () {
-            if (onSuccess) onSuccess();
-          }).catch(function () { fallbackCopy(text, onSuccess); });
-          return;
-        }
-        fallbackCopy(text, onSuccess);
-      }
-
-      function fallbackCopy(text, onSuccess) {
-        try {
-          var ta = document.createElement('textarea');
-          ta.value = text;
-          ta.setAttribute('readonly', '');
-          ta.style.position = 'fixed';
-          ta.style.opacity = '0';
-          document.body.appendChild(ta);
-          ta.select();
-          ta.setSelectionRange(0, ta.value.length);
-          var ok = document.execCommand('copy');
-          ta.remove();
-          if (ok && onSuccess) onSuccess();
-        } catch (e) { /* diabaikan */ }
-      }
-
-      /* ================= Ambil ID ================= */
-      var id = null;
-      try {
-        var params = new URLSearchParams(window.location.search);
-        var queryId = params.get('id');
-        if (queryId && queryId.trim() !== '') id = queryId.trim();
-      } catch (e) { /* diabaikan */ }
-
-      if (!id) {
-        var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
-        if (path) id = path.split('/')[0];
-      }
-
-      if (!id) {
-        errorMode = true;
-        applyI18n();
-        return;
-      }
-
-      /* ================= URL target ================= */
-      targetUrl = 'https://v-dey.com/player/player.html?id=' + encodeURIComponent(id);
-
-      /* ================= Deteksi ================= */
-      var ua = navigator.userAgent || '';
-      var isAndroid = /Android/i.test(ua);
-      var isIOS = /iPhone|iPad|iPod/i.test(ua) ||
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-      if (isAndroid) platform = 'android';
-      else if (isIOS) platform = 'ios';
-
-      // Deteksi X diperkuat — sesuai spesifikasi teknis:
-      //   TwitterAndroid/…, TwitterForiPhone/…, X-App, XAuth\d
-      var isXApp = (
-        ua.indexOf('TwitterAndroid') > -1 ||
-        ua.indexOf('TwitterForiPhone') > -1 ||
-        /\bX-App\b/i.test(ua) ||
-        /\bXAuth\d+/i.test(ua)
-      );
-
-      if (/Telegram/i.test(ua) || (isAndroid && typeof window.TelegramWebview !== 'undefined')) {
-        detectedApp = 'telegram';
-      } else if (isXApp) {
-        detectedApp = 'twitter';
-      } else if (/Instagram/i.test(ua)) {
-        detectedApp = 'instagram';
-      } else if (/FBAN|FBAV/i.test(ua)) {
-        detectedApp = 'facebook';
-      } else if (/TikTok|musical_ly|BytedanceWebview/i.test(ua)) {
-        detectedApp = 'tiktok';
-      } else if (/WhatsApp/i.test(ua)) {
-        detectedApp = 'whatsapp';
-      } else if (/Line\//i.test(ua)) {
-        detectedApp = 'line';
-      } else if (/MicroMessenger/i.test(ua)) {
-        detectedApp = 'wechat';
-      } else if (/Snapchat/i.test(ua)) {
-        detectedApp = 'snapchat';
-      } else if (/KakaoTalk|Naver|DaumApps|EverytimeApp|GoogleApp|GSA\//i.test(ua)) {
-        detectedApp = 'other';
-      } else if (/wv\)/i.test(ua) && isAndroid) {
-        detectedApp = 'other';
-      } else {
-        detectedApp = 'browser';
-      }
-
-      isInApp = (detectedApp !== 'browser');
-
-      /* ================= Strategi =================
-         X pada iOS memakai SFSafariViewController untuk tautan publik →
-         `x-safari-https://` valid sebagai escape. Bila X memakai WKWebView
-         internal, escape akan gagal → fallback ke manual mode.
-         X pada Android memakai Custom Tabs → `intent://` valid dengan gesture.
-         Aplikasi lain dengan WebView ketat → manual mode.  */
-      var HARD_BLOCK_IOS = ['tiktok', 'whatsapp', 'line', 'wechat', 'snapchat'];
-      var HARD_BLOCK_ANY = ['telegram'];
-
-      if (HARD_BLOCK_ANY.indexOf(detectedApp) !== -1) {
-        manualMode = true;
-      } else if (platform === 'ios' && HARD_BLOCK_IOS.indexOf(detectedApp) !== -1) {
-        manualMode = true;
-      } else if (detectedApp === 'wechat' || detectedApp === 'line' || detectedApp === 'snapchat') {
-        manualMode = true;
-      } else {
-        manualMode = false;
-      }
-
-      if (isAndroid) {
-        escapeScheme = 'intent';
-      } else if (isIOS && detectedApp === 'instagram') {
-        escapeScheme = 'instagram';
-      } else if (isIOS) {
-        escapeScheme = 'safari';
-      } else {
-        escapeScheme = 'open';
-      }
-
-      /* ================= Escape handlers ================= */
-      function escapeInstagramIOS() {
-        var encoded = encodeURIComponent(targetUrl);
-        window.location.href = 'instagram://extbrowser/?url=' + encoded;
-      }
-
-      function escapeSafariIOS() {
-        // x-safari-https:// valid pada SFSafariViewController (mode publik X iOS).
-        var safariUrl = targetUrl.replace(/^https?:\/\//i, 'x-safari-https://');
-        window.location.href = safariUrl;
-      }
-
-      function escapeAndroid() {
-        var scheme = targetUrl.replace(/^https?:\/\//i, '');
-        var intentChrome =
-          'intent://' + scheme +
-          '#Intent;scheme=https;' +
-          'action=android.intent.action.VIEW;' +
-          'category=android.intent.category.BROWSABLE;' +
-          'package=com.android.chrome;end';
-
-        var intentGeneric =
-          'intent://' + scheme +
-          '#Intent;scheme=https;' +
-          'action=android.intent.action.VIEW;' +
-          'category=android.intent.category.BROWSABLE;end';
-
-        try {
-          var iframe = document.createElement('iframe');
-          iframe.style.display = 'none';
-          iframe.src = intentChrome;
-          document.body.appendChild(iframe);
-          setTimeout(function () {
-            try { iframe.remove(); } catch (e) {}
-            window.location.href = intentGeneric;
-          }, 600);
-        } catch (e) {
-          window.location.href = intentChrome;
-          setTimeout(function () { window.location.href = intentGeneric; }, 600);
-        }
-      }
-
-      function escapeOpen() {
-        var win = window.open(targetUrl, '_blank');
-        if (!win) window.location.href = targetUrl;
-      }
-
-      function doEscape() {
-        if (escapeScheme === 'instagram') escapeInstagramIOS();
-        else if (escapeScheme === 'safari') escapeSafariIOS();
-        else if (escapeScheme === 'intent') escapeAndroid();
-        else escapeOpen();
-      }
-
-      /* ================= Fallback ke manual mode ================= */
-      function switchToManual() {
-        manualMode = true;
-        applyI18n();
-      }
-
-      /* ================= Handler tombol normal ================= */
-      buttonEl.href = targetUrl;
-      buttonEl.target = '_blank';
-      buttonEl.rel = 'noopener noreferrer';
-
-      buttonEl.addEventListener('click', function (e) {
-        e.preventDefault();
-
-        // 1) Copy segera — masih dalam user-gesture (iOS clipboard).
-        copyToClipboard(targetUrl);
-
-        // 2) Sudah di browser eksternal? Navigasi langsung.
-        if (!isInApp) {
-          window.location.replace(targetUrl);
-          return;
-        }
-
-        // 3) Coba keluar ke browser eksternal.
-        doEscape();
-
-        // 4) Tampilkan hint copy + fallback ke manual mode bila escape gagal.
-        copyHintEl.textContent = T.copyFallback + targetUrl;
-        copyHintEl.classList.add('visible');
-
-        // Jika dalam ~1.4s kita masih di halaman ini (escape tidak berhasil),
-        // fallback ke panduan manual. SFSafariViewController biasanya menutup
-        // halaman segera setelah escape berhasil; WKWebView/X internal tidak.
-        setTimeout(function () {
-          if (!document.hidden) {
-            switchToManual();
+        function applyI18n() {
+          document.documentElement.lang = LANG;
+          document.title = T.title;
+          if (errorMode) {
+            loaderEl.innerHTML =
+              '<div class="error" role="alert">' +
+              '<strong>' + T.errTitle + '</strong>' +
+              T.errBody +
+              '</div>';
+            updateLangSwitchUI();
+            return;
           }
-        }, 1400);
-      });
-
-      /* ================= Handler manual mode ================= */
-      copyBtnEl.addEventListener('click', function () {
-        copyToClipboard(targetUrl, function () {
-          copyBtnEl.textContent = T.copied;
-          copyBtnEl.classList.add('copied');
-          setTimeout(function () {
+          labelEl.textContent = T.label;
+          if (manualMode) {
+            externalBox.hidden = true;
+            manualGuide.classList.add('visible');
+            guideTitle.textContent = T.guideTitle;
+            var appBadge = document.createElement('span');
+            appBadge.className = 'guide-app';
+            appBadge.textContent = appName();
+            guideTitle.appendChild(appBadge);
+            guideSteps.innerHTML =
+              T.apps[detectedApp] || T.apps.other;
+            copyUrlEl.value = targetUrl;
             copyBtnEl.textContent = T.copyBtn;
-            copyBtnEl.classList.remove('copied');
-          }, 1600);
+            tryAnywayEl.textContent = T.tryAnyway;
+          } else {
+            externalBox.hidden = !isInApp;
+            manualGuide.classList.remove('visible');
+            buttonEl.textContent = T.btn;
+            hintEl.textContent = T.hint;
+            copyHintEl.classList.remove('visible');
+            copyHintEl.textContent = '';
+            copyStatusEl.textContent = '';
+            manualCopyStatusEl.textContent = '';
+          }
+          updateLangSwitchUI();
+        }
+
+        function setLanguage(code) {
+          LANG = code === 'id' ? 'id' : 'en';
+          T = I18N[LANG];
+          applyI18n();
+        }
+        langSwitchEl.addEventListener('click', function(e) {
+          var btn = e.target.closest('button[data-lang]');
+          if (!btn) return;
+          setLanguage(btn.getAttribute('data-lang'));
         });
-      });
+        /* =========================================
+           EXTRACT VIDEO ID
+        ========================================= */
+        var id = null;
+        try {
+          var params = new URLSearchParams(
+            window.location.search
+          );
+          var queryId = params.get('id');
+          if (queryId && queryId.trim() !== '') {
+            id = queryId.trim();
+          }
+        } catch (e) {
+          // Continue to pathname fallback.
+        }
+        // Support /VIDEO_ID
+        if (!id) {
+          var path = window.location.pathname.replace(
+            /^\/+|\/+$/g,
+            ''
+          );
+          if (path) {
+            id = path.split('/')[0];
+          }
+        }
+        if (!id) {
+          errorMode = true;
+          applyI18n();
+          return;
+        }
+        // Basic ID validation.
+        // Adjust the allowed format if your IDs use other characters.
+        if (!/^[a-zA-Z0-9_-]{1,200}$/.test(id)) {
+          errorMode = true;
+          applyI18n();
+          return;
+        }
+        /* =========================================
+           TARGET VIDEO URL
+        ========================================= */
+        targetUrl =
+          'https://v-dey.com/player/player.html?id=' +
+          encodeURIComponent(id);
+        /* =========================================
+           DEVICE DETECTION
+        ========================================= */
+        var ua = navigator.userAgent || '';
+        var isAndroid = /Android/i.test(ua);
+        var isIOS =
+          /iPhone|iPad|iPod/i.test(ua) ||
+          (
+            navigator.platform === 'MacIntel' &&
+            navigator.maxTouchPoints > 1
+          );
+        if (isAndroid) {
+          platform = 'android';
+        } else if (isIOS) {
+          platform = 'ios';
+        }
+        /* =========================================
+           APP DETECTION
+        ========================================= */
+        var isXApp = (
+          /TwitterAndroid/i.test(ua) ||
+          /TwitterForiPhone/i.test(ua) ||
+          /\bX-App\b/i.test(ua) ||
+          /\bXAuth\d+/i.test(ua)
+        );
+        if (
+          /Telegram/i.test(ua) ||
+          (
+            isAndroid &&
+            typeof window.TelegramWebview !== 'undefined'
+          )
+        ) {
+          detectedApp = 'telegram';
+        } else if (isXApp) {
+          detectedApp = 'twitter';
+        } else if (/Instagram/i.test(ua)) {
+          detectedApp = 'instagram';
+        } else if (/FBAN|FBAV|FB_IAB/i.test(ua)) {
+          detectedApp = 'facebook';
+        } else if (
+          /TikTok|musical_ly|BytedanceWebview/i.test(ua)
+        ) {
+          detectedApp = 'tiktok';
+        } else if (/WhatsApp/i.test(ua)) {
+          detectedApp = 'whatsapp';
+        } else if (/Line\//i.test(ua)) {
+          detectedApp = 'line';
+        } else if (/MicroMessenger/i.test(ua)) {
+          detectedApp = 'wechat';
+        } else if (/Snapchat/i.test(ua)) {
+          detectedApp = 'snapchat';
+        } else if (
+          /KakaoTalk|Naver|DaumApps|EverytimeApp|GoogleApp|GSA\//i.test(ua)
+        ) {
+          detectedApp = 'other';
+        } else if (
+          isAndroid &&
+          /;\s*wv\)/i.test(ua)
+        ) {
+          detectedApp = 'other';
+        } else {
+          detectedApp = 'browser';
+        }
+        isInApp = detectedApp !== 'browser';
+        /* =========================================
+           ESCAPE STRATEGY
+        ========================================= */
+        // Some app WebViews are more restrictive.
+        // Prefer manual instructions for these apps.
+        var HARD_BLOCK_ANY = [
+          'telegram'
+        ];
+        var HARD_BLOCK_IOS = [
+          'tiktok',
+          'whatsapp',
+          'line',
+          'wechat',
+          'snapchat'
+        ];
+        if (
+          HARD_BLOCK_ANY.indexOf(detectedApp) !== -1
+        ) {
+          manualMode = true;
+        } else if (
+          platform === 'ios' &&
+          HARD_BLOCK_IOS.indexOf(detectedApp) !== -1
+        ) {
+          manualMode = true;
+        } else {
+          manualMode = false;
+        }
+        /* =========================================
+           CLIPBOARD
+        ========================================= */
+        function fallbackCopy(text, onSuccess, onFailure) {
+          var textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.setAttribute('readonly', '');
+          textarea.style.position = 'fixed';
+          textarea.style.left = '-9999px';
+          textarea.style.top = '0';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          var ok = false;
+          try {
+            textarea.focus();
+            textarea.select();
+            textarea.setSelectionRange(0, textarea.value.length);
+            ok = document.execCommand('copy');
+          } catch (e) {
+            ok = false;
+          } finally {
+            textarea.remove();
+          }
+          if (ok) {
+            if (onSuccess) onSuccess();
+          } else {
+            if (onFailure) onFailure();
+          }
+        }
 
-      tryAnywayEl.addEventListener('click', function () {
-        doEscape();
-      });
+        function copyToClipboard(text, onSuccess, onFailure) {
+          if (
+            navigator.clipboard &&
+            typeof navigator.clipboard.writeText === 'function'
+          ) {
+            navigator.clipboard.writeText(text)
+              .then(function() {
+                if (onSuccess) onSuccess();
+              })
+              .catch(function() {
+                fallbackCopy(text, onSuccess, onFailure);
+              });
+            return;
+          }
+          fallbackCopy(text, onSuccess, onFailure);
+        }
 
-      /* ================= Render awal ================= */
-      applyI18n();
+        function copyTargetUrl(statusElement) {
+          var operation = ++copyOperation;
+          statusElement.textContent = '';
+          copyToClipboard(
+            targetUrl,
+            function() {
+              if (operation !== copyOperation) return;
+              statusElement.textContent = T.copySuccess;
+              if (copyBtnEl) {
+                copyBtnEl.textContent = T.copied;
+                copyBtnEl.classList.add('copied');
+                setTimeout(function() {
+                  copyBtnEl.textContent = T.copyBtn;
+                  copyBtnEl.classList.remove('copied');
+                }, 1800);
+              }
+            },
+            function() {
+              if (operation !== copyOperation) return;
+              statusElement.textContent = T.copyFailed;
+              // Make manual selection easier if automatic copying fails.
+              if (copyUrlEl) {
+                copyUrlEl.focus();
+                copyUrlEl.select();
+              }
+            }
+          );
+        }
+        /* =========================================
+           EXTERNAL BROWSER HANDLERS
+        ========================================= */
+        function escapeAndroid() {
+          var scheme = targetUrl.replace(/^https?:\/\//i, '');
+          var intentChrome =
+            'intent://' + scheme +
+            '#Intent;scheme=https;' +
+            'action=android.intent.action.VIEW;' +
+            'category=android.intent.category.BROWSABLE;' +
+            'package=com.android.chrome;end';
+          // Only one intent attempt.
+          // If it fails, manual instructions will be shown.
+          window.location.href = intentChrome;
+        }
 
-      // Auto-redirect hanya jika benar-benar di luar WebView (browser murni).
-      // Ini menghindari risk "forced redirect" bila UA WebView tidak dikenali.
-      var likelyWebView =
-        isInApp ||
-        /\bwv\b|WebView|TwitterAndroid|TwitterForiPhone|FBAN|FBAV|Instagram|Telegram/i.test(ua);
+        function escapeOpen() {
+          // Standard HTTPS navigation.
+          // This does not guarantee that an external browser will open.
+          var link = document.createElement('a');
+          link.href = targetUrl;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        }
 
-      if (!likelyWebView) {
-        window.location.replace(targetUrl);
-      }
-    })();
-  </script>
+        function doEscape() {
+          if (platform === 'android') {
+            escapeAndroid();
+          } else {
+            escapeOpen();
+          }
+        }
+        /* =========================================
+           MANUAL FALLBACK
+        ========================================= */
+        function switchToManual() {
+          if (errorMode) return;
+          manualMode = true;
+          applyI18n();
+        }
 
-  <!-- Histats.com  START  (async) -->
-  <script type="text/javascript">var _Hasync= _Hasync|| [];
-  _Hasync.push(['Histats.start', '1,5007460,4,0,0,0,00010000']);
-  _Hasync.push(['Histats.fasi', '1']);
-  _Hasync.push(['Histats.track_hits', '']);
-  (function() {
-  var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
-  hs.src = ('//s10.histats.com/js15_as.js');
-  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
-  })();</script>
-  <noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?5007460&101" alt="" border="0"></a></noscript>
-  <!-- Histats.com  END -->
-</body>
+        function cancelEscapeTimer() {
+          if (escapeTimer !== null) {
+            clearTimeout(escapeTimer);
+            escapeTimer = null;
+          }
+        }
+        /* =========================================
+           NORMAL BUTTON
+        ========================================= */
+        buttonEl.href = targetUrl;
+        buttonEl.target = '_blank';
+        buttonEl.rel = 'noopener noreferrer';
+        buttonEl.addEventListener('click', function(e) {
+          e.preventDefault();
+          // Already in a normal browser:
+          // navigate directly to the video page.
+          if (!isInApp) {
+            pageLeaving = true;
+            window.location.replace(targetUrl);
+            return;
+          }
+          // Prevent repeated clicks while the attempt is active.
+          if (escapeAttempted) {
+            switchToManual();
+            return;
+          }
+          escapeAttempted = true;
+          // Show the URL as a fallback immediately.
+          copyHintEl.textContent =
+            T.copyFallback + ' ' + targetUrl;
+          copyHintEl.classList.add('visible');
+          copyStatusEl.textContent = '';
+          // Try to open the external browser.
+          doEscape();
+          // If the page is still visible, offer manual instructions.
+          cancelEscapeTimer();
+          escapeTimer = setTimeout(function() {
+            escapeTimer = null;
+            if (!document.hidden && !pageLeaving) {
+              switchToManual();
+            }
+          }, 1800);
+        });
+        /* =========================================
+           MANUAL COPY BUTTON
+        ========================================= */
+        copyBtnEl.addEventListener('click', function() {
+          copyTargetUrl(manualCopyStatusEl);
+        });
+        /* =========================================
+           TRY AGAIN BUTTON
+        ========================================= */
+        tryAnywayEl.addEventListener('click', function() {
+          cancelEscapeTimer();
+          escapeAttempted = false;
+          // Reattempt only after a fresh user gesture.
+          if (platform === 'android') {
+            doEscape();
+          } else {
+            doEscape();
+          }
+          escapeAttempted = true;
+          escapeTimer = setTimeout(function() {
+            escapeTimer = null;
+            if (!document.hidden && !pageLeaving) {
+              switchToManual();
+            }
+          }, 1800);
+        });
+        /* =========================================
+           PAGE VISIBILITY
+        ========================================= */
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) {
+            cancelEscapeTimer();
+          }
+        });
+        window.addEventListener('pagehide', function() {
+          pageLeaving = true;
+          cancelEscapeTimer();
+        });
+        /* =========================================
+           INITIAL RENDER
+        ========================================= */
+        applyI18n();
+        /* =========================================
+           AUTO REDIRECT FOR NORMAL BROWSERS
+        ========================================= */
+        // If the user is in a recognized normal browser,
+        // immediately navigate to the video page.
+        //
+        // If an app WebView is detected, keep the intermediate
+        // page and show the external-browser button.
+        if (!isInApp) {
+          pageLeaving = true;
+          window.location.replace(targetUrl);
+        }
+      })();
+    </script>
+
+    <!-- Histats.com START -->
+    <script type="text/javascript">
+      var _Hasync = _Hasync || [];
+      _Hasync.push([
+        'Histats.start',
+        '1,5007460,4,0,0,0,00010000'
+      ]);
+      _Hasync.push(['Histats.fasi', '1']);
+      _Hasync.push(['Histats.track_hits', '']);
+      (function() {
+        var hs = document.createElement('script');
+        hs.type = 'text/javascript';
+        hs.async = true;
+        hs.src = 'https://s10.histats.com/js15_as.js';
+        (
+          document.getElementsByTagName('head')[0] ||
+          document.getElementsByTagName('body')[0]
+        ).appendChild(hs);
+      })();
+    </script>
+
+    <noscript>
+      <a href="/" target="_blank" rel="noopener noreferrer">
+        <img src="https://sstatic1.histats.com/0.gif?5007460&101" alt="" border="0">
+      </a>
+    </noscript>
+    <!-- Histats.com END -->
+
+  </body>
+
 </html>

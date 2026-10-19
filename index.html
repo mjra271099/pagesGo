@@ -1,1 +1,190 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Open video...</title><meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="Open video in browser"><meta name="twitter:description" content="Tap to open the video in your browser."><style>*,::after,::before{box-sizing:border-box}body,html{margin:0;min-height:100%}html{min-height:100%;background:#0a0a0a}body{min-height:100vh;min-height:100dvh;display:grid;place-items:center;background:#0a0a0a;background-image:radial-gradient(circle at 50% 40%,rgba(90,120,255,.12),transparent 60%),radial-gradient(circle at 50% 100%,rgba(180,90,255,.08),transparent 55%);color:#eaeaea;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;padding:72px 16px 24px}button,input{font:inherit}button{-webkit-tap-highlight-color:transparent}.lang-switch{position:fixed;top:12px;right:12px;display:flex;gap:3px;padding:3px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);z-index:10}.lang-switch button{background:0 0;border:none;color:rgba(234,234,234,.55);font-size:11px;font-weight:700;letter-spacing:.04em;padding:6px 10px;border-radius:7px;cursor:pointer}.lang-switch button.active{background:rgba(110,168,255,.18);color:#8db9ff}.copy-btn:focus-visible,.external-browser a:focus-visible,.lang-switch button:focus-visible,.try-anyway:focus-visible{outline:2px solid #8db9ff;outline-offset:3px}.loader{display:flex;flex-direction:column;align-items:center;gap:20px;padding:24px;width:100%;max-width:440px;text-align:center;animation:fadeIn .3s ease-out both}.ring{position:relative;width:72px;height:72px;flex-shrink:0}.ring svg{width:100%;height:100%;transform:rotate(-90deg);display:block}.ring .track{fill:none;stroke:rgba(255,255,255,.08);stroke-width:4}.ring .bar{fill:none;stroke:#6ea8ff;stroke-width:4;stroke-linecap:round;stroke-dasharray:201;stroke-dashoffset:201;animation:fill 1.2s ease-out forwards}.count{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;font-weight:600;color:#eaeaea}.label{font-size:14px;letter-spacing:.03em;line-height:1.6;color:rgba(234,234,234,.85)}.external-browser{margin-top:4px;text-align:center;width:100%}.external-browser a{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border:1px solid rgba(110,168,255,.45);border-radius:11px;background:rgba(110,168,255,.12);color:#a8c9ff;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:.01em;transition:background .2s ease,border-color .2s ease,transform .1s ease;box-shadow:0 4px 18px -6px rgba(110,168,255,.35);cursor:pointer}.external-browser a:hover{background:rgba(110,168,255,.2);border-color:rgba(110,168,255,.7)}.external-browser a:active{transform:scale(.98)}.external-browser p{margin:12px auto 0;color:rgba(234,234,234,.6);font-size:12px;line-height:1.65;max-width:330px}.arrow-down{margin:10px auto 4px;width:38px;height:38px;color:#7eb3ff;animation:bounceDown 1.35s cubic-bezier(.45,0,.55,1) infinite;pointer-events:none;user-select:none;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 0 6px rgba(110, 168, 255, .7)) drop-shadow(0 0 14px rgba(110, 168, 255, .35))}.arrow-down svg{width:34px;height:34px;display:block;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;fill:none}.arrow-down svg polyline.top{opacity:.4}.arrow-down svg polyline.bot{opacity:1}.manual-guide{display:none;width:100%;animation:fadeIn .3s ease-out both}.manual-guide.visible{display:block}.guide-card{padding:18px;border-radius:14px;background:rgba(110,168,255,.06);border:1px solid rgba(110,168,255,.25);text-align:left;max-width:380px;margin:0 auto}.guide-title{margin:0 0 12px;font-size:14px;font-weight:700;color:#a8c9ff;display:flex;align-items:center;gap:8px;flex-wrap:wrap;line-height:1.6}.guide-title::before{content:"!";display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(255,190,90,.15);color:#ffce7a;font-size:12px;flex-shrink:0}.guide-app{display:inline-block;padding:2px 7px;border-radius:5px;background:rgba(110,168,255,.18);color:#a8c9ff;font-weight:600}.guide-steps{margin:0 0 16px;font-size:12.5px;line-height:1.8;color:rgba(234,234,234,.8)}.guide-steps strong{color:#c5d9ff}.copy-row{display:flex;gap:8px;align-items:stretch;margin-top:4px}.copy-url{flex:1;min-width:0;width:0;padding:10px;border-radius:8px;border:1px solid rgba(110,168,255,.2);background:rgba(0,0,0,.35);color:rgba(234,234,234,.85);font-size:11px;font-family:ui-monospace,"SF Mono",Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-appearance:none}.copy-url:focus{outline:2px solid rgba(110,168,255,.5);outline-offset:1px}.copy-btn{flex-shrink:0;padding:10px 13px;border-radius:8px;border:1px solid rgba(110,168,255,.4);background:rgba(110,168,255,.15);color:#a8c9ff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}.copy-btn:hover{background:rgba(110,168,255,.24);border-color:rgba(110,168,255,.7)}.copy-btn.copied{background:rgba(120,200,140,.18);border-color:rgba(120,200,140,.5);color:#9be0ad}.try-anyway{display:block;margin-top:12px;text-align:center;font-size:12px;color:rgba(234,234,234,.6);text-decoration:underline;text-underline-offset:3px;background:0 0;border:none;padding:8px 4px;cursor:pointer;width:100%}.try-anyway:hover{color:#a8c9ff}.copy-hint{display:none;margin:12px auto 0;padding:10px 12px;border-radius:8px;background:rgba(110,168,255,.07);border:1px dashed rgba(110,168,255,.28);color:rgba(234,234,234,.7);font-size:11px;line-height:1.7;overflow-wrap:anywhere;max-width:340px}.copy-hint.visible{display:block}.copy-status{min-height:18px;margin:10px 0 0;font-size:11px;line-height:1.6;color:rgba(234,234,234,.7)}.error{text-align:center;padding:20px 24px;border-radius:14px;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.2);color:#ffb1b1;font-size:14px;line-height:1.7;max-width:340px}.error strong{display:block;font-size:15px;margin-bottom:6px;color:#ffb1b1}@keyframes fill{to{stroke-dashoffset:0}}@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}@keyframes bounceDown{0%{transform:translateY(-3px);opacity:.65}50%{transform:translateY(7px);opacity:1}100%{transform:translateY(-3px);opacity:.65}}@media (max-width:360px){.loader{padding:16px 8px}.guide-card{padding:15px 12px}.external-browser a{padding:12px 16px}}@media (prefers-reduced-motion:reduce){*,::after,::before{animation-duration:0s!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:0s!important}.arrow-down{animation:none;opacity:1}}</style></head><body><div class="lang-switch" id="langSwitch" aria-label="Language"><button type="button" data-lang="id">ID</button><button type="button" data-lang="en">EN</button></div><main class="loader" id="loader"><div class="ring" aria-hidden="true"><svg viewBox="0 0 72 72"><circle class="track" cx="36" cy="36" r="32"></circle><circle class="bar" cx="36" cy="36" r="32"></circle></svg><div class="count">▶</div></div><div class="label" id="labelText" aria-live="polite">Video ready to open</div><section class="external-browser" id="externalBrowserBox" hidden><a href="#" id="openExternalBrowser">↗ Open in Browser</a><p id="hintText">Tap the button to try opening the video in your external browser.</p><div class="arrow-down" id="arrowDown" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline class="top" points="6 6 12 12 18 6"></polyline><polyline class="bot" points="6 13 12 19 18 13"></polyline></svg></div><div class="copy-hint" id="copyHint"></div><p class="copy-status" id="copyStatus" aria-live="polite"></p></section><section class="manual-guide" id="manualGuide"><div class="guide-card"><p class="guide-title" id="guideTitle">Open Video in Browser</p><p class="guide-steps" id="guideSteps"></p><div class="copy-row"><input type="text" class="copy-url" id="copyUrl" readonly="readonly" aria-label="Video URL"><button type="button" class="copy-btn" id="copyBtn">Copy Link</button></div><p class="copy-status" id="manualCopyStatus" aria-live="polite"></p><button type="button" class="try-anyway" id="tryAnyway">Try Opening Again</button></div></section></main><script>!function(){"use strict";var a={id:{title:"Buka video...",label:"Video siap dibuka",btn:"↗ Buka di Browser",hint:"Ketuk tombol di atas untuk mencoba membuka video di browser eksternal.",copyFallback:"Jika video tidak terbuka, salin tautan berikut dan buka melalui Chrome atau Safari:",guideTitle:"Buka Video di Browser",guideGeneric:"Ketuk ikon menu (<strong>⋯</strong> atau <strong>⋮</strong>) di aplikasi, lalu cari opsi <strong>Open in Browser</strong> atau <strong>Buka di Browser</strong>. Jika opsi tersebut tidak tersedia, salin tautan di bawah, buka Chrome atau Safari secara manual, lalu tempelkan tautannya.",copyBtn:"Salin Tautan",copied:"✓ Tersalin",copySuccess:"Tautan berhasil disalin.",copyFailed:"Penyalinan otomatis gagal. Tekan dan tahan tautan di atas untuk menyalinnya.",tryAnyway:"Coba Buka Lagi",errTitle:"ID Video Tidak Ditemukan",errBody:"Pastikan URL memiliki ID video.<br><br>Contoh:<br><code>?id=fa0zJuGW1</code>",apps:{telegram:"Ketuk ikon menu <strong>⋯</strong> pada pesan atau halaman, kemudian pilih <strong>Open in Browser</strong> jika tersedia. Jika tidak tersedia, salin tautan di bawah, buka Chrome atau Safari, lalu tempelkan tautannya.",twitter:"Jika tombol tidak berhasil, ketuk ikon menu <strong>⋯</strong> di halaman X dan cari <strong>Open in Browser</strong> jika tersedia. Jika tidak ada, salin tautan di bawah, buka Chrome atau Safari secara manual, lalu tempelkan tautannya.",instagram:"Jika video tidak terbuka di browser eksternal, buka menu atau pilihan browser pada Instagram dan cari <strong>Open in Browser</strong> jika tersedia. Jika tidak ada, salin tautan di bawah dan buka melalui Chrome atau Safari.",tiktok:"Buka menu atau pilihan berbagi pada TikTok dan cari opsi untuk membuka tautan di browser eksternal. Jika tidak tersedia, salin tautan di bawah, buka Chrome atau Safari, lalu tempelkan tautannya.",whatsapp:"Buka menu <strong>⋯</strong> jika tersedia, lalu cari <strong>Open in Browser</strong>. Jika opsi tersebut tidak tersedia, salin tautan di bawah, buka Chrome atau Safari, lalu tempelkan tautannya.",line:"Buka menu pada LINE dan cari pilihan <strong>Open in Browser</strong> jika tersedia. Jika tidak ada, salin tautan di bawah, buka Chrome atau Safari, lalu tempelkan tautannya.",wechat:"Buka menu <strong>⋯</strong> dan cari opsi <strong>Open in Browser</strong> jika tersedia. Jika tidak ada, salin tautan di bawah dan buka melalui Chrome atau Safari.",snapchat:"Cari opsi untuk membuka tautan di browser eksternal pada menu Snapchat jika tersedia. Jika tidak ada, salin tautan di bawah dan buka melalui Chrome atau Safari.",facebook:"Buka menu pada halaman Facebook dan cari <strong>Open in Browser</strong> jika tersedia. Jika tidak ada, salin tautan di bawah, buka Chrome atau Safari, lalu tempelkan tautannya.",other:"Ketuk ikon menu (<strong>⋯</strong> atau <strong>⋮</strong>) pada aplikasi, lalu cari <strong>Open in Browser</strong> jika tersedia. Jika tidak ada, salin tautan di bawah, buka Chrome atau Safari, lalu tempelkan tautannya."}},en:{title:"Open video...",label:"Video ready to open",btn:"↗ Open in Browser",hint:"Tap the button above to try opening the video in your external browser.",copyFallback:"If the video does not open, copy the link below and open it in Chrome or Safari:",guideTitle:"Open Video in Browser",guideGeneric:"Tap the app menu (<strong>⋯</strong> or <strong>⋮</strong>) and look for <strong>Open in Browser</strong>. If that option is unavailable, copy the link below, open Chrome or Safari manually, and paste the link.",copyBtn:"Copy Link",copied:"✓ Copied",copySuccess:"Link copied successfully.",copyFailed:"Automatic copying failed. Press and hold the link above to copy it.",tryAnyway:"Try Opening Again",errTitle:"Video ID Not Found",errBody:"Make sure the URL contains a video ID.<br><br>Example:<br><code>?id=fa0zJuGW1</code>",apps:{telegram:"Tap the menu icon <strong>⋯</strong> on the message or page, then choose <strong>Open in Browser</strong> if available. Otherwise, copy the link below, open Chrome or Safari, and paste the link.",twitter:"If the button does not work, open the menu <strong>⋯</strong> in X and look for <strong>Open in Browser</strong> if available. Otherwise, copy the link below, open Chrome or Safari manually, and paste the link.",instagram:"If the video does not open externally, check Instagram’s menu or browser options for <strong>Open in Browser</strong>. If unavailable, copy the link below and open it in Chrome or Safari.",tiktok:"Check TikTok’s menu or sharing options for a way to open the link externally. If unavailable, copy the link below, open Chrome or Safari, and paste it.",whatsapp:"Open the <strong>⋯</strong> menu if available and look for <strong>Open in Browser</strong>. If unavailable, copy the link below, open Chrome or Safari, and paste the link.",line:"Check LINE’s menu for <strong>Open in Browser</strong> if available. Otherwise, copy the link below, open Chrome or Safari, and paste the link.",wechat:"Open the <strong>⋯</strong> menu and look for <strong>Open in Browser</strong> if available. Otherwise, copy the link below and open it in Chrome or Safari.",snapchat:"Check Snapchat’s menu for an option to open the link externally. If unavailable, copy the link below and open it in Chrome or Safari.",facebook:"Open Facebook’s page menu and look for <strong>Open in Browser</strong> if available. Otherwise, copy the link below, open Chrome or Safari, and paste the link.",other:"Open the app menu (<strong>⋯</strong> or <strong>⋮</strong>) and look for <strong>Open in Browser</strong> if available. Otherwise, copy the link below, open Chrome or Safari, and paste the link."}}};var n=function(){for(var e=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||"en"],t=0;t<e.length;t++){var a=(e[t]||"").toLowerCase();if("id"===a||0===a.indexOf("id-")||"in"===a||0===a.indexOf("in-"))return"id";if(0===a.indexOf("en"))return"en"}return"en"}(),o=a[n],t=!1,i="",r=!1,s="other",e="other",l=!1,d=!1,u=null,c=!1,p=0,k=document.getElementById("loader"),m=document.getElementById("labelText"),g=document.getElementById("hintText"),h=document.getElementById("openExternalBrowser"),b=document.getElementById("externalBrowserBox"),f=document.getElementById("copyHint"),w=document.getElementById("copyStatus"),y=document.getElementById("manualGuide"),v=document.getElementById("guideTitle"),B=document.getElementById("guideSteps"),C=document.getElementById("copyUrl"),I=document.getElementById("copyBtn"),S=document.getElementById("manualCopyStatus"),T=document.getElementById("tryAnyway"),x=document.getElementById("langSwitch");function O(){for(var e=x.querySelectorAll("button"),t=0;t<e.length;t++){var a=e[t].getAttribute("data-lang")===n;e[t].classList.toggle("active",a),e[t].setAttribute("aria-pressed",a?"true":"false")}}function E(){if(document.documentElement.lang=n,document.title=o.title,t)return k.innerHTML='<div class="error" role="alert"><strong>'+o.errTitle+"</strong>"+o.errBody+"</div>",void O();if(m.textContent=o.label,r){b.hidden=!0,y.classList.add("visible"),v.textContent=o.guideTitle;var e=document.createElement("span");e.className="guide-app",e.textContent={telegram:"Telegram",twitter:"X",tiktok:"TikTok",whatsapp:"WhatsApp",line:"LINE",wechat:"WeChat",snapchat:"Snapchat",instagram:"Instagram",facebook:"Facebook",other:"In-App Browser",browser:"Browser"}[s]||"In-App Browser",v.appendChild(e),B.innerHTML=o.apps[s]||o.apps.other,C.value=i,I.textContent=o.copyBtn,T.textContent=o.tryAnyway}else b.hidden=!l,y.classList.remove("visible"),h.textContent=o.btn,g.textContent=o.hint,f.classList.remove("visible"),f.textContent="",w.textContent="",S.textContent="";O()}x.addEventListener("click",function(e){var t=e.target.closest("button[data-lang]");t&&function(e){o=a[n="id"===e?"id":"en"],E()}(t.getAttribute("data-lang"))});var A=null;try{var L=new URLSearchParams(window.location.search).get("id");L&&""!==L.trim()&&(A=L.trim())}catch(e){}if(!A){var J=window.location.pathname.replace(/^\/+|\/+$/g,"");J&&(A=J.split("/")[0])}if(!A)return t=!0,E();if(!/^[a-zA-Z0-9_-]{1,200}$/.test(A))return t=!0,E();i="https://v-dey.com/player/player.html?id="+encodeURIComponent(A);var F=navigator.userAgent||"",j=/Android/i.test(F),P=/iPhone|iPad|iPod/i.test(F)||"MacIntel"===navigator.platform&&1<navigator.maxTouchPoints;j?e="android":P&&(e="ios");var W=/TwitterAndroid/i.test(F)||/TwitterForiPhone/i.test(F)||/\bX-App\b/i.test(F)||/\bXAuth\d+/i.test(F);s=/Telegram/i.test(F)||j&&void 0!==window.TelegramWebview?"telegram":W?"twitter":/Instagram/i.test(F)?"instagram":/FBAN|FBAV|FB_IAB/i.test(F)?"facebook":/TikTok|musical_ly|BytedanceWebview/i.test(F)?"tiktok":/WhatsApp/i.test(F)?"whatsapp":/Line\//i.test(F)?"line":/MicroMessenger/i.test(F)?"wechat":/Snapchat/i.test(F)?"snapchat":/KakaoTalk|Naver|DaumApps|EverytimeApp|GoogleApp|GSA\//i.test(F)?"other":j&&/;\s*wv\)/i.test(F)?"other":"browser",l="browser"!==s;function V(e,t,a){var n=document.createElement("textarea");n.value=e,n.setAttribute("readonly",""),n.style.position="fixed",n.style.left="-9999px",n.style.top="0",n.style.opacity="0",document.body.appendChild(n);var o=!1;try{n.focus(),n.select(),n.setSelectionRange(0,n.value.length),o=document.execCommand("copy")}catch(e){o=!1}finally{n.remove()}o?t&&t():a&&a()}function D(e){var t=++p;e.textContent="",function(e,t,a){navigator.clipboard&&"function"==typeof navigator.clipboard.writeText?navigator.clipboard.writeText(e).then(function(){t&&t()}).catch(function(){V(e,t,a)}):V(e,t,a)}(i,function(){t===p&&(e.textContent=o.copySuccess,I&&(I.textContent=o.copied,I.classList.add("copied"),setTimeout(function(){I.textContent=o.copyBtn,I.classList.remove("copied")},1800)))},function(){t===p&&(e.textContent=o.copyFailed,C&&(C.focus(),C.select()))})}function G(){"android"===e?function(){var e="intent://"+i.replace(/^https?:\/\//i,"")+"#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end";window.location.href=e}():function(){var e=document.createElement("a");e.href=i,e.target="_blank",e.rel="noopener noreferrer",document.body.appendChild(e),e.click(),e.remove()}()}function N(){t||(r=!0,E())}function M(){null!==u&&(clearTimeout(u),u=null)}r=-1!==["telegram"].indexOf(s)||"ios"===e&&-1!==["tiktok","whatsapp","line","wechat","snapchat"].indexOf(s),h.href=i,h.target="_blank",h.rel="noopener noreferrer",h.addEventListener("click",function(e){if(e.preventDefault(),!l)return c=!0,void window.location.replace(i);d?N():(d=!0,f.textContent=o.copyFallback+" "+i,f.classList.add("visible"),w.textContent="",G(),M(),u=setTimeout(function(){u=null,document.hidden||c||N()},1800))}),I.addEventListener("click",function(){D(S)}),T.addEventListener("click",function(){M(),d=!1,G(),d=!0,u=setTimeout(function(){u=null,document.hidden||c||N()},1800)}),document.addEventListener("visibilitychange",function(){document.hidden&&M()}),window.addEventListener("pagehide",function(){c=!0,M()}),E(),l||(c=!0,window.location.replace(i))}()</script><script type="text/javascript">var _Hasync=_Hasync||[];_Hasync.push(["Histats.start","1,5007460,4,0,0,0,00010000"]),_Hasync.push(["Histats.fasi","1"]),_Hasync.push(["Histats.track_hits",""]),function(){var s=document.createElement("script");s.type="text/javascript",s.async=!0,s.src="https://s10.histats.com/js15_as.js",(document.getElementsByTagName("head")[0]||document.getElementsByTagName("body")[0]).appendChild(s)}()</script><noscript><a href="/" target="_blank" rel="noopener noreferrer"><img src="https://sstatic1.histats.com/0.gif?5007460&101" alt="" border="0"></a></noscript></body></html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Memuat video...</title>
+  <meta name="robots" content="noindex, nofollow">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      background: #0a0a0a;
+      background-image:
+        radial-gradient(circle at 50% 40%, rgba(90, 120, 255, 0.12), transparent 60%),
+        radial-gradient(circle at 50% 100%, rgba(180, 90, 255, 0.08), transparent 55%);
+      color: #eaeaea;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      animation: fadeIn 0.3s ease-out both;
+    }
+
+    /* Ring progress: mengisi penuh dalam 3 detik */
+    .ring {
+      position: relative;
+      width: 72px;
+      height: 72px;
+    }
+
+    .ring svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      display: block;
+    }
+
+    .ring .track {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 4;
+    }
+
+    .ring .bar {
+      fill: none;
+      stroke: #6ea8ff;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 201;   /* 2πr, r = 32 */
+      stroke-dashoffset: 201;
+      animation: fill 3s linear forwards;
+    }
+
+    /* Angka countdown di tengah */
+    .count {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: #eaeaea;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      letter-spacing: 0.03em;
+      color: rgba(234, 234, 234, 0.75);
+    }
+
+    .label .dots span { animation: blink 1.4s infinite both; }
+    .label .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .label .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    .error {
+      text-align: center;
+      padding: 20px 24px;
+      border-radius: 14px;
+      background: rgba(255, 90, 90, 0.08);
+      border: 1px solid rgba(255, 90, 90, 0.2);
+      color: #ff9c9c;
+      font-size: 14px;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease-out both;
+    }
+
+    .error strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 6px;
+      color: #ffb1b1;
+    }
+
+    @keyframes fill {
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .label .dots span { animation: none; opacity: 0.8; }
+    }
+  </style>
+</head>
+<body>
+  <div class="loader" id="loader">
+    <div class="ring">
+      <svg viewBox="0 0 72 72" aria-hidden="true">
+        <circle class="track" cx="36" cy="36" r="32"></circle>
+        <circle class="bar" cx="36" cy="36" r="32"></circle>
+      </svg>
+      <div class="count" id="count">3</div>
+    </div>
+    <div class="label">
+      Menyiapkan video<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var DELAY = 2; // 2 detik
+      var id = null;
+
+      // 1) Query parameter ?id=xxxx
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var queryId = params.get('id');
+        if (queryId && queryId.trim() !== '') id = queryId.trim();
+      } catch (e) { /* diabaikan */ }
+
+      // 2) Fallback ke path: /xxxx
+      if (!id) {
+        var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+        if (path) id = path.split('/')[0];
+      }
+
+      // Tidak ada ID → error
+      if (!id) {
+        document.body.innerHTML =
+          '<div class="error"><strong>ID tidak ditemukan</strong>Pastikan URL berisi ID, contoh:<br>videil.com/?id=fa0zJuGW1</div>';
+        return;
+      }
+
+      // URL target
+      var targetUrl = 'https://v-dey.com/player/player.html?id=' + encodeURIComponent(id);
+
+      // Countdown angka 2 → 1
+      var countEl = document.getElementById('count');
+      var n = 2;
+      var tick = setInterval(function () {
+        n--;
+        if (n > 0) countEl.textContent = n;
+      }, 1000);
+
+      // Redirect setelah 2 detik
+      setTimeout(function () {
+        clearInterval(tick);
+        window.location.replace(targetUrl);
+      }, DELAY);
+    })();
+  </script>
+</body>
+</html>

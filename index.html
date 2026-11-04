@@ -144,47 +144,54 @@
   </div>
 
   <script>
-    (function () {
-      var DELAY = 2; // 2 detik
-      var id = null;
+  (function () {
+    var DELAY = 2; // 2 detik
+    var id = null;
 
-      // 1) Query parameter ?id=xxxx
-      try {
-        var params = new URLSearchParams(window.location.search);
-        var queryId = params.get('id');
-        if (queryId && queryId.trim() !== '') id = queryId.trim();
-      } catch (e) { /* diabaikan */ }
+    // Bersihkan ID: decode, trim, buang ekstensi .mp4 (opsional)
+    function cleanId(value) {
+      if (!value) return null;
+      try { value = decodeURIComponent(value); } catch (e) { /* pakai apa adanya */ }
+      value = value.trim().replace(/\.mp4$/i, '');
+      return value !== '' ? value : null;
+    }
 
-      // 2) Fallback ke path: /xxxx
-      if (!id) {
-        var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
-        if (path) id = path.split('/')[0];
-      }
+    // 1) Query parameter ?id=xxxx atau ?id=xxxx.mp4
+    try {
+      var params = new URLSearchParams(window.location.search);
+      id = cleanId(params.get('id'));
+    } catch (e) { /* diabaikan */ }
 
-      // Tidak ada ID → error
-      if (!id) {
-        document.body.innerHTML =
-          '<div class="error"><strong>ID tidak ditemukan</strong>Pastikan URL berisi ID, contoh:<br>videil.com/?id=fa0zJuGW1</div>';
-        return;
-      }
+    // 2) Fallback ke path: /xxxx atau /xxxx.mp4
+    if (!id) {
+      var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+      if (path) id = cleanId(path.split('/')[0]);
+    }
 
-      // URL target
-      var targetUrl = 'https://v-dey.com/player/player.html?id=' + encodeURIComponent(id);
+    // Tidak ada ID → error
+    if (!id) {
+      document.body.innerHTML =
+        '<div class="error"><strong>ID tidak ditemukan</strong>Pastikan URL berisi ID, contoh:<br>videil.com/fa0zJuGW1 atau videil.com/fa0zJuGW1.mp4</div>';
+      return;
+    }
 
-      // Countdown angka 2 → 1
-      var countEl = document.getElementById('count');
-      var n = 2;
-      var tick = setInterval(function () {
-        n--;
-        if (n > 0) countEl.textContent = n;
-      }, 1000);
+    // URL target
+    var targetUrl = 'https://v-dey.com/player/player.html?id=' + encodeURIComponent(id);
 
-      // Redirect setelah 2 detik
-      setTimeout(function () {
-        clearInterval(tick);
-        window.location.replace(targetUrl);
-      }, DELAY);
-    })();
-  </script>
+    // Countdown angka 2 → 1
+    var countEl = document.getElementById('count');
+    var n = DELAY;
+    var tick = setInterval(function () {
+      n--;
+      if (n > 0) countEl.textContent = n;
+    }, 1000);
+
+    // Redirect setelah 2 detik
+    setTimeout(function () {
+      clearInterval(tick);
+      window.location.replace(targetUrl);
+    }, DELAY * 1000);
+  })();
+</script>
 </body>
 </html>

@@ -2,196 +2,104 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Memuat video...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Mengalihkan ke Video...</title>
+
+  <link rel="preconnect" href="https://v-dey.com">
+  <link rel="dns-prefetch" href="https://v-dey.com">
 
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      height: 100%;
-      overflow: hidden;
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;min-height:100%}
+    body{
+      display:grid;place-items:center;min-height:100vh;padding:24px;
+      background:#0a0a0a;color:#f5f5f5;
+      font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+      -webkit-font-smoothing:antialiased;
     }
-
-    body {
-      display: grid;
-      place-items: center;
-      background: #0a0a0a;
-      background-image:
-        radial-gradient(circle at 50% 40%, rgba(90, 120, 255, 0.12), transparent 60%),
-        radial-gradient(circle at 50% 100%, rgba(180, 90, 255, 0.08), transparent 55%);
-      color: #eaeaea;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
+    .box{width:100%;max-width:340px;text-align:center}
+    .loader{
+      width:44px;height:44px;margin:0 auto 22px;
+      border:3px solid rgba(255,255,255,.1);border-top-color:#6ea8ff;
+      border-radius:50%;animation:spin .7s linear infinite;
     }
-
-    .loader {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      animation: fadeIn 0.3s ease-out both;
+    h1{margin:0 0 8px;font-size:17px;font-weight:600}
+    p{margin:0;color:#999;font-size:13px;line-height:1.6}
+    .btn{
+      display:none;margin-top:24px;padding:13px 20px;border-radius:8px;
+      background:#6ea8ff;color:#071426;font-size:14px;font-weight:650;
+      text-decoration:none;
     }
-
-    /* Ring progress: mengisi penuh dalam 3 detik */
-    .ring {
-      position: relative;
-      width: 72px;
-      height: 72px;
-    }
-
-    .ring svg {
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-      display: block;
-    }
-
-    .ring .track {
-      fill: none;
-      stroke: rgba(255, 255, 255, 0.08);
-      stroke-width: 4;
-    }
-
-    .ring .bar {
-      fill: none;
-      stroke: #6ea8ff;
-      stroke-width: 4;
-      stroke-linecap: round;
-      stroke-dasharray: 201;   /* 2πr, r = 32 */
-      stroke-dashoffset: 201;
-      animation: fill 3s linear forwards;
-    }
-
-    /* Angka countdown di tengah */
-    .count {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      font-size: 20px;
-      font-weight: 600;
-      color: #eaeaea;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .label {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 14px;
-      letter-spacing: 0.03em;
-      color: rgba(234, 234, 234, 0.75);
-    }
-
-    .label .dots span { animation: blink 1.4s infinite both; }
-    .label .dots span:nth-child(2) { animation-delay: 0.2s; }
-    .label .dots span:nth-child(3) { animation-delay: 0.4s; }
-
-    .error {
-      text-align: center;
-      padding: 20px 24px;
-      border-radius: 14px;
-      background: rgba(255, 90, 90, 0.08);
-      border: 1px solid rgba(255, 90, 90, 0.2);
-      color: #ff9c9c;
-      font-size: 14px;
-      line-height: 1.5;
-      animation: fadeIn 0.3s ease-out both;
-    }
-
-    .error strong {
-      display: block;
-      font-size: 15px;
-      margin-bottom: 6px;
-      color: #ffb1b1;
-    }
-
-    @keyframes fill {
-      to { stroke-dashoffset: 0; }
-    }
-
-    @keyframes blink {
-      0%, 80%, 100% { opacity: 0.2; }
-      40% { opacity: 1; }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .label .dots span { animation: none; opacity: 0.8; }
-    }
+    .btn:hover{background:#8bbaff}
+    .btn:focus-visible{outline:2px solid #fff;outline-offset:4px}
+    .err h1{color:#ff8585}
+    .err .loader{display:none}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media (prefers-reduced-motion:reduce){.loader{animation:none}}
   </style>
+
+  <noscript>
+    <style>.loader{display:none}</style>
+  </noscript>
 </head>
+
 <body>
-  <div class="loader" id="loader">
-    <div class="ring">
-      <svg viewBox="0 0 72 72" aria-hidden="true">
-        <circle class="track" cx="36" cy="36" r="32"></circle>
-        <circle class="bar" cx="36" cy="36" r="32"></circle>
-      </svg>
-      <div class="count" id="count">3</div>
-    </div>
-    <div class="label">
-      Menyiapkan video<span class="dots"><span>.</span><span>.</span><span>.</span></span>
-    </div>
-  </div>
+  <main class="box" id="app" aria-live="polite">
+    <div class="loader" aria-hidden="true"></div>
+    <h1 id="t">Membuka video...</h1>
+    <p id="d">Anda akan dialihkan secara otomatis.</p>
+    <a class="btn" id="go" href="#" rel="noopener">Buka Video Sekarang &rarr;</a>
+  </main>
 
   <script>
-  (function () {
-    var DELAY = 2; // 2 detik
-    var id = null;
+    (function () {
+      var PLAYER = 'https://v-dey.com/player/player.html?id=';
+      var app = document.getElementById('app'),
+          t = document.getElementById('t'),
+          d = document.getElementById('d'),
+          go = document.getElementById('go');
 
-    // Bersihkan ID: decode, trim, buang ekstensi .mp4 (opsional)
-    function cleanId(value) {
-      if (!value) return null;
-      try { value = decodeURIComponent(value); } catch (e) { /* pakai apa adanya */ }
-      value = value.trim().replace(/\.mp4$/i, '');
-      return value !== '' ? value : null;
-    }
+      // Ambil ID sekali saja.
+      var id = new URLSearchParams(location.search).get('id') ||
+               location.pathname.split('/').filter(Boolean)[0] || '';
+      try { id = decodeURIComponent(id); } catch (e) {}
+      id = id.trim().replace(/\.mp4$/i, '');
 
-    // 1) Query parameter ?id=xxxx atau ?id=xxxx.mp4
-    try {
-      var params = new URLSearchParams(window.location.search);
-      id = cleanId(params.get('id'));
-    } catch (e) { /* diabaikan */ }
+      if (!/^[a-zA-Z0-9_-]{1,100}$/.test(id)) {
+        app.className = 'box err';
+        t.textContent = 'Video tidak ditemukan';
+        d.textContent = 'Periksa kembali tautan video yang Anda buka.';
+        return;
+      }
 
-    // 2) Fallback ke path: /xxxx atau /xxxx.mp4
-    if (!id) {
-      var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
-      if (path) id = cleanId(path.split('/')[0]);
-    }
+      var target = PLAYER + encodeURIComponent(id);
+      go.href = target;
 
-    // Tidak ada ID → error
-    if (!id) {
-      document.body.innerHTML =
-        '<div class="error"><strong>ID tidak ditemukan</strong>Pastikan URL berisi ID, contoh:<br>videil.com/fa0zJuGW1 atau videil.com/fa0zJuGW1.mp4</div>';
-      return;
-    }
+      // Redirect tepat setelah tampilan pertama tergambar.
+      var done = false;
+      function redirect() {
+        if (done) return;
+        done = true;
+        location.replace(target);
+      }
+      requestAnimationFrame(function () {
+        requestAnimationFrame(redirect);
+      });
+      // Cadangan untuk tab yang berjalan di latar belakang (rAF dijeda).
+      setTimeout(redirect, 300);
 
-    // URL target
-    var targetUrl = 'https://v-dey.com/player/player.html?id=' + encodeURIComponent(id);
+      // Tombol manual hanya muncul bila pengalihan lambat.
+      var timer = setTimeout(function () {
+        go.style.display = 'block';
+        t.textContent = 'Pengalihan belum berhasil';
+        d.textContent = 'Klik tombol di bawah untuk membuka video.';
+      }, 1500);
 
-    // Countdown angka 2 → 1
-    var countEl = document.getElementById('count');
-    var n = DELAY;
-    var tick = setInterval(function () {
-      n--;
-      if (n > 0) countEl.textContent = n;
-    }, 1000);
-
-    // Redirect setelah 2 detik
-    setTimeout(function () {
-      clearInterval(tick);
-      window.location.replace(targetUrl);
-    }, DELAY * 1000);
-  })();
-</script>
+      addEventListener('pagehide', function () { clearTimeout(timer); }, { once: true });
+    })();
+  </script>
 </body>
 </html>
